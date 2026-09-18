@@ -1,0 +1,117 @@
+# Wild 9 decompilation project
+
+# -----------------------------------------------------------------------------
+# Original copyrighted game data
+# Do not commit game discs, executables, extracted assets, or dumps.
+# -----------------------------------------------------------------------------
+/iso/
+/disks/
+/rom/
+/roms/
+/original/
+/assets/
+/audio/
+/video/
+/movies/
+
+*.bin
+*.cue
+*.iso
+*.img
+*.mdf
+*.mds
+*.chd
+*.ecm
+*.pbp
+*.ccd
+*.sub
+
+# Common PlayStation executables / backups
+SLUS_*
+SCUS_*
+SLPS_*
+SCES_*
+SLES_*
+SCPM_*
+*.exe.bak
+*.bin.bak
+
+# -----------------------------------------------------------------------------
+# Generated reverse-engineering output
+# -----------------------------------------------------------------------------
+/asm/
+/build/
+/expected/
+/release/
+/nonmatchings/
+/linker/
+/junk/
+/tmp/
+/scratch/
+/outputs/
+/.splat/
+
+# Generated linker / object / binary artifacts
+*.ld
+*.map
+*.elf
+*.o
+*.a
+*.so
+*.gdb
+*.d
+
+# Generated context and intermediate source files
+ctx.c
+*.ctx.c
+*.m2c
+
+# Generated disassembly / reports
+*.lst
+*.sym
+*.srec
+*.hex
+*.dump
+
+# -----------------------------------------------------------------------------
+# Local toolchains and downloaded tool binaries
+# -----------------------------------------------------------------------------
+/tools/bin/
+/tools/toolchain/
+/toolchain/
+
+# -----------------------------------------------------------------------------
+# Python
+# -----------------------------------------------------------------------------
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.pyo
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.pyre/
+
+# -----------------------------------------------------------------------------
+# IDE / editor
+# -----------------------------------------------------------------------------
+.idea/
+.vscode/
+*.code-workspace
+*.swp
+*.swo
+*~
+
+# -----------------------------------------------------------------------------
+# OS
+# -----------------------------------------------------------------------------
+.DS_Store
+Thumbs.db
+
+# -----------------------------------------------------------------------------
+# Misc local state
+# -----------------------------------------------------------------------------
+.env
+.env.*
+*.log

@@ -1,0 +1,4 @@
+# Python tooling used by the Wild 9 decompilation project.
+# Keep the versions fixed for reproducible analysis/build tooling.
+splat64[mips]==0.50.0
+spimdisasm==1.42.4
