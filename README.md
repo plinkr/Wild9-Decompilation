@@ -1,193 +1,269 @@
 # Wild 9 Decompilation
 
-Matching decompilation of Wild 9 for the Sony PlayStation 1 (NTSC-U, SLUS-00425).
+Matching decompilation of `Wild 9` for the Sony PlayStation 1 (NTSC-U, SLUS-00425)
 
 ## Overview
 
-This project aims to reconstruct readable C source code that compiles to match
-the original PlayStation 1 executable (SLUS_004.25) byte-for-byte.
+This project reconstructs readable C source code that can reproduce the
+original PlayStation executable at the machine code level. The target is the
+NTSC-U executable identified as `SLUS_004.25`.
 
-The project is in its early stages. Initial repository structure, binary analysis
-scripts, disassembly and splitting configuration via Splat, and decompilation
-tool submodules are in place. Selection of the matching C compiler toolchain and
-the build system for recompilation are in progress.
+The project is in an early decompilation stage. The repository contains the
+Splat configuration, analysis scripts, disassembly tooling, source layout, and
+matching helpers. The current matching toolchain is GCC 2.8.0 PSX with GNU
+binutils 2.42. The selected versions and flags are recorded in
+`config/slus_004.25/toolchain.json`.
 
-## Repository Policy
+## Features
 
-This project strictly adheres to clean-room reverse engineering practices:
+- PlayStation 1 MIPS R3000A executable analysis.
+- Splat based executable splitting and disassembly.
+- GCC 2.8.0 PSX matching through `decompals/old-gcc` release `0.17`.
+- Private Ubuntu Noble GNU binutils 2.42 installation for
+  `mipsel-linux-gnu`.
+- ASPSX compatible assembly translation through `maspsx`.
+- Function matching against bytes extracted from the original executable.
+- Assembly comparison, decompilation, context generation, and permutation
+  tooling provided through Git submodules.
+
+## Repository policy
+
+This is a clean room reverse engineering project:
 
 - The repository does not contain original game binaries, disc images,
   copyrighted game assets, or proprietary PlayStation SDK headers.
 - Contributors must provide their own legally acquired copy of the game.
-- Generated assembly, intermediate objects, and binary dumps must remain
-  in untracked directories (such as iso/, asm/, and build/).
-- Fingerprint files committed to config/slus_004.25/ contain only
-  cryptographic hashes (SHA-1, SHA-256).
+- Generated assembly, intermediate objects, binary dumps, and matching output
+  remain in ignored directories such as `iso/`, `asm/`, and `build/`.
+- Fingerprint files committed under `config/slus_004.25/` contain hashes and
+  toolchain configuration, not original game data.
 
 ## Requirements
 
-### Host Environment
+### Host environment
 
-- Linux (x86_64)
+The local toolchain packages are Ubuntu `amd64` packages, so the documented
+setup requires an x86_64 Linux host.
+
+- Linux x86_64
 - Git
 - GNU Make
-- Python 3 (with python3-pip and python3-venv)
-- Standard Unix utilities (file, sha1sum, sha256sum)
+- Python 3 with `python3-pip` and `python3-venv`
+- `curl`
+- GNU `ar`
+- `tar` with zstd support
+- `sha1sum`, `sha256sum`, `timeout`, `cmp`, and other standard Unix utilities
 
 Example package installation commands:
 
-- Debian / Ubuntu:
-  ```bash
-  sudo apt install git make python3 python3-pip python3-venv file
-  ```
-- Arch Linux:
-  ```bash
-  sudo pacman -S git make python python-pip base-devel file
-  ```
-- Fedora:
-  ```bash
-  sudo dnf install git make python3 python3-pip file
-  ```
+```bash
+# Debian or Ubuntu
+sudo apt install git make python3 python3-pip python3-venv curl binutils zstd file
 
-### Target Game Data
+# Arch Linux, Manjaro, CachyOS
+sudo pacman -S git make python python-pip curl binutils zstd file
+```
 
-An original NTSC-U Wild 9 game disc is required to extract the executable:
+### Original game data
 
-- Path: iso/us/SLUS_004.25
-- Size: 425984 bytes (0x68000)
-- SHA-1: 1dac75ee3a0ef5a62e025a85183076fa1a6cf824
-- SHA-256: ab280169ed52906589b8353a00c5cb4e9851da21d1023c98569de51958a44012
+An original NTSC-U Wild 9 disc or executable extraction is required. Place the
+executable at:
 
-### Python Dependencies
+```text
+iso/us/SLUS_004.25
+```
 
-Pinned dependencies are installed automatically into a local .venv by the
+The expected executable metadata is:
+
+```text
+Size:    425984 bytes (0x68000)
+SHA 1:   1dac75ee3a0ef5a62e025a85183076fa1a6cf824
+SHA 256: ab280169ed52906589b8353a00c5cb4e9851da21d1023c98569de51958a44012
+```
+
+### Python dependencies
+
+The pinned Python dependencies are installed into the local `.venv` by the
 Makefile:
 
-- splat64[mips]==0.50.0
-- spimdisasm==1.42.4
+- `splat64[mips]==0.50.0`
+- `spimdisasm==1.42.4`
 
 ## Setup
 
-1. Clone the repository and initialize submodules:
+Clone the repository and initialize its tooling submodules:
 
-   ```bash
-   git clone --recursive https://github.com/plinkr/Wild9-Decompilation
-   cd Wild9-Decompilation
-   ```
+```bash
+git clone --recursive https://github.com/plinkr/Wild9-Decompilation.git
+cd Wild9-Decompilation
+```
 
-   If already cloned without --recursive:
+If the repository was cloned without submodules, initialize them with:
 
-   ```bash
-   make tools
-   ```
+```bash
+make tools
+```
 
-2. Place the original NTSC-U PlayStation executable in the expected directory:
+Place the legally obtained executable in the expected location:
 
-   ```bash
-   mkdir -p iso/us
-   cp /path/to/SLUS_004.25 iso/us/SLUS_004.25
-   ```
+```bash
+mkdir -p iso/us
+cp /path/to/SLUS_004.25 iso/us/SLUS_004.25
+```
 
-3. Create the local Python virtual environment and install dependencies:
+Create the Python environment and install the pinned analysis dependencies:
 
-   ```bash
-   make install
-   ```
+```bash
+make install
+```
 
-4. Verify tool versions and executable integrity:
+Install the exact compiler and assembler toolchain used for matching by
+following [docs/TOOLCHAIN.md](docs/TOOLCHAIN.md). That document covers:
 
-   ```bash
-   make versions
-   make info
-   make fingerprint
-   ```
+- GCC 2.8.0 PSX from `decompals/old-gcc`, release `0.17`.
+- SHA 256 verification of `gcc-2.8.0-psx.tar.gz`.
+- Extraction to `tools/toolchain/gcc-2.8.0-psx/`.
+- Ubuntu Noble `binutils-mipsel-linux-gnu` version 2.42.
+- The matching `libsframe1` runtime dependency.
+- Local extraction without modifying the system installation.
+- Activation through `scripts/binutils-env.sh`.
 
-## Usage
+The compiler archive checksum is:
 
-The project uses GNU Make to drive setup, analysis, and splitting tasks.
+```text
+1a3c956fe8aea5ebdb251749d95de2c84f023530584d7bd663744b5ec24050b7
+```
 
-| Target               | Description                                              |
-| -------------------- | -------------------------------------------------------- |
-| make help            | List available Makefile targets                          |
-| make venv            | Create local Python virtual environment (.venv)          |
-| make install         | Install pinned Python dependencies into .venv            |
-| make tools           | Initialize and update Git submodules                     |
-| make versions        | Display versions of Python, splat64, and spimdisasm      |
-| make verify-input    | Check that iso/us/SLUS_004.25 exists locally             |
-| make info            | Parse and display PS-X EXE header fields                 |
-| make fingerprint     | Record SHA-1 and SHA-256 hashes to config/slus_004.25/   |
-| make create-config   | Generate and normalize the Splat split configuration     |
-| make split           | Disassemble and split binary into assembly sections      |
-| make clean           | Remove generated Python virtual environment (.venv)      |
+After installing binutils, load the private runtime environment in every new
+shell before invoking assembler, linker, or matching commands:
 
-## Splitting the Binary
+```bash
+source scripts/binutils-env.sh
+```
 
-To generate the initial Splat configuration and disassemble the target
-executable:
+Verify the installed tools:
+
+```bash
+mipsel-linux-gnu-as --version
+mipsel-linux-gnu-ld --version
+mipsel-linux-gnu-objcopy --version
+```
+
+The GCC version output begins with `GNU C version 2.8.0 (mips-sony-psx)`.
+The binutils commands must report version 2.42. The GCC version command uses a
+timeout because this historical `cc1` build can print its version and not exit
+by itself.
+
+## Build and analysis commands
+
+Check the Python and analysis tool versions:
+
+```bash
+make versions
+make info
+make fingerprint
+```
+
+Generate the initial Splat configuration and split the executable:
 
 ```bash
 make create-config
 make split
 ```
 
-Review config/slus_004.25/splat.yaml, symbols/slus_004.25.txt, and
-symbols/slus_004.25.relocs.txt. Splat will generate raw disassembly under
-asm/, which is ignored by version control.
+Review the generated configuration and symbol files before committing them:
 
-## Matching and Tooling
+```text
+config/slus_004.25/splat.yaml
+symbols/slus_004.25.txt
+symbols/slus_004.25.relocs.txt
+```
 
-Matching decompilation compares the compiled output of reconstructed C
-functions against the original MIPS R3000A assembly until a byte-level match is
-achieved.
+Splat writes generated disassembly under `asm/`, which is intentionally not
+tracked by Git.
 
-The repository tracks common decompilation tools as submodules in tools/:
+## Matching workflow
 
-- asm-differ: Interactive visual diff utility for assembly comparison.
-- decomp-permuter: Automated permutation tool for matching tough functions.
-- m2c: MIPS assembly to C decompilation assistant.
-- m2ctx: Context generator script for macro and typedef expansion.
-- maspsx: Modern GCC to Sony ASPSX assembly translator.
-- mipsmatch: Function matching and coverage report generator.
-- psx_psyq_signatures: Psy-Q library signatures for identifying SDK functions.
+The matching pipeline is:
 
-As the project is in early development, compiler selection and matching diff
-targets will be configured once the Psy-Q SDK version is determined.
+```text
+C source
+  -> C preprocessor
+  -> GCC 2.8.0 PSX cc1
+  -> maspsx ASPSX 2.77 translation
+  -> GNU assembler 2.42
+  -> relocatable MIPS object
+  -> optional GNU linker step
+  -> byte comparison with the original executable
+```
 
-## Development Conventions
+The selected compiler flags are:
 
-Refer to docs/STYLE.md for the complete style guide.
+```text
+-quiet -O2 -G0 -mips1 -mcpu=3000 -mgas -msoft-float -fgnu-linker -g0
+```
 
-- Types: Use fixed-width types from types.h (u8, s8, u16, s16, u32,
-  s32, bool) instead of standard C types (char, short, int).
-- Formatting: 4-space indentation, no tabs, 80-column margin limit, opening
-  braces on the same line (clang-format compatible).
-- Naming:
-  - Local variables: camelCase
-  - Global variables: g_PascalCase
-  - Static variables: s_PascalCase
-  - Struct types: PascalCase, struct members: camelCase
-  - Enum types: PascalCase, enum values: SCREAMING_SNAKE_CASE
-  - Macros and constants: SCREAMING_SNAKE_CASE
-  - Functions: PascalCase
-  - Source files: snake_case
-- Function Order: C source files must maintain the exact function order of the
-  original executable to ensure matching layout during linking.
+The selected `maspsx` profile is ASPSX 2.77 without `--expand-div`. GNU
+assembler uses:
+
+```text
+-EL -march=r3000 -mtune=r3000 -no-pad-sections -O1 -G0
+```
+
+These values are recorded in `config/slus_004.25/toolchain.json` and should
+be treated as the project defaults.
+
+Before matching, source the binutils environment:
+
+```bash
+source scripts/binutils-env.sh
+```
+
+## Tooling submodules
+
+The repository tracks these open source tools as submodules:
+
+- `asm-differ`: Interactive assembly comparison.
+- `decomp-permuter`: Source permutation search for matching functions.
+- `m2c`: MIPS assembly to C decompilation assistant.
+- `m2ctx`: Context generator for macros and typedefs.
+- `maspsx`: GCC to Sony ASPSX assembly translator.
+- `mipsmatch`: Function matching and coverage reporting.
+- `psx_psyq_signatures`: Psy Q library signatures.
+
+## Development
+
+Follow [docs/STYLE.md](docs/STYLE.md) for C naming, formatting, types, and
+function ordering. C functions must remain in the same order as the original
+assembly when matching layout sensitive code.
+
+Keep original game data and generated output outside version control. Do not
+commit disc images, executables, extracted assets, proprietary SDK code,
+generated assembly, object files, or matching output.
+
+When changing compiler or assembler behavior, update the relevant configuration
+and document the reason. Toolchain changes must be validated against frozen
+preprocessed input and more than one matching function before being treated as
+the project default.
 
 ## Contributing
 
-Contributions are welcome. Prior to submitting changes:
+Before submitting changes:
 
-1. Ensure code adheres to docs/STYLE.md and project formatting conventions.
-2. Maintain clean-room standards: never submit original game assets or
-   proprietary SDK code.
-3. Test Splat configurations and verify that symbol addresses remain consistent.
+1. Follow `docs/STYLE.md` for source changes.
+2. Preserve the clean room repository policy.
+3. Verify Splat configuration and symbol address changes.
+4. Source `scripts/binutils-env.sh` when running matching or assembler tools.
+5. Include the relevant command and result when a toolchain or matching change
+   affects generated output.
 
 ## License
 
-The code and tooling configurations in this repository are licensed under the
-GNU Affero General Public License v3 (AGPL-3.0). See LICENSE.md for details.
+The original source, scripts, and configuration in this repository are
+licensed under the GNU Affero General Public License version 3. See
+`LICENSE.md`.
 
-Wild 9 is copyright (C) 1998 Shiny Entertainment, Inc. / Interplay Productions.
-This project is an unofficial clean-room reverse engineering effort and is not
-affiliated with or endorsed by Shiny Entertainment, Interplay, or Sony
-Interactive Entertainment.
+The Wild 9 name, executable, disc data, and game assets are copyrighted by
+their respective rights holders. This project is an unofficial clean room
+reverse engineering effort and is not affiliated with or endorsed by Shiny
+Entertainment, Interplay Productions, or Sony Interactive Entertainment.

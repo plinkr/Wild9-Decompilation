@@ -1,0 +1,36 @@
+{
+    "name": "wild9-gcc-2.8.0-psq43",
+    "compiler": {
+        "family": "GCC",
+        "version": "2.8.0",
+        "target": "PSX",
+        "source": "decompals/old-gcc",
+        "release": "0.17"
+    },
+    "cc1_flags": [
+        "-quiet",
+        "-O2",
+        "-G0",
+        "-mips1",
+        "-mcpu=3000",
+        "-mgas",
+        "-msoft-float",
+        "-fgnu-linker",
+        "-g0"
+    ],
+    "maspsx": {
+        "aspsx_version": "2.77",
+        "expand_div": false
+    },
+    "assembler": {
+        "command": "mipsel-linux-gnu-as",
+        "flags": [
+            "-EL",
+            "-march=r3000",
+            "-mtune=r3000",
+            "-no-pad-sections",
+            "-O1",
+            "-G0"
+        ]
+    }
+}
