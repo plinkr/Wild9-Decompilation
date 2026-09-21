@@ -35,6 +35,8 @@ A lot of formatting is done by clang-format, such as
 - brackets go on the same line (`if (1) {`)
 - pointer goes on type (`s32* var;` not `s32 *var;`)
 
+The repository root `.clang-format` contains the clang-format settings used by `make format`.
+
 There are various other conventions that it does not catch, though:
 
 - Blank line between declarations and code:
@@ -86,7 +88,7 @@ If a function returns only `0` or `1`, and is used as a boolean (i.e. in conditi
 ## Conditionals/Loops
 
 - Spacing out conditional or loop blocks from surrounding code often makes them easier to read.
-- We *always* use `{}` on conditional/loop blocks, even if they're one line
+- We **always** use `{}` on conditional/loop blocks, even if they're one line
 - When conditions are `&&`d or `||`d together, use brackets around each that includes an arithmetic comparison or bitwise operator (i.e. not `!var` or `func()`, but ones with `==` or `&` etc.)
 - Flag checks or functions that return booleans do not need the `== 0`/`!= 0`.
 - Prefer `if-else` over `if { return; }`, i.e.
@@ -146,11 +148,19 @@ We use comments for:
    */
   ```
 
-  These are *optional*: if you think the code is clear enough, you do not need to put a comment.
+  These are **optional**: if you think the code is clear enough, you do not need to put a comment.
   - If something in a function is strange, or unintuitive, do leave a comment explaining what's going on. We use `//` for this.
   - A bug should be commented with an `//! @bug Bug description` above the code that causes the bug.
   - A fake should be commented with an `// !FAKE:` above or to the side of the code that you think it's fake.
 
 ### Functions
 
-All functions should go in the main C file in the same order as the assembly (the latter is required to match anyway).
+Each decompiled function goes in `src/functions/func_XXXXXXXX.c`. `src/main.c` includes matched function files in original address order. Unmatched functions remain as `INCLUDE_ASM` entries at the same position.
+
+## Matching
+
+Matching is byte-oriented.
+
+Do not change code for style reasons when doing so changes the generated assembly. Compiler behavior, register allocation, small-data usage, expression ordering, and explicit temporaries can all affect a match.
+
+When a construction looks unusual but reproduces the original assembly, document the reason in a short comment.

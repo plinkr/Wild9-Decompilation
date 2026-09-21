@@ -60,11 +60,7 @@ The installed archive `gcc-2.8.0-psx.tar.gz` must have this SHA-256 checksum:
 1a3c956fe8aea5ebdb251749d95de2c84f023530584d7bd663744b5ec24050b7
 ```
 
-The compiler used directly by the matching pipeline is:
-
-```text
-tools/toolchain/gcc-2.8.0-psx/cc1
-```
+The matching pipeline invokes the GCC driver at `tools/toolchain/gcc-2.8.0-psx/gcc`, which uses the bundled GCC 2.8.0 PSX compiler components.
 
 The archive is downloaded from the `0.17` release of `decompals/old-gcc`:
 

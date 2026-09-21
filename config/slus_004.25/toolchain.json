@@ -10,7 +10,7 @@
     "cc1_flags": [
         "-quiet",
         "-O2",
-        "-G0",
+        "-G8",
         "-mips1",
         "-mcpu=3000",
         "-mgas",
