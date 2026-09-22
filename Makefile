@@ -178,7 +178,7 @@ verify-input:
 	}
 
 info: verify-input
-	$(PYTHON) scripts/inspect_psx_exe.py "$(TARGET)"
+	$(PY) scripts/inspect_psx_exe.py "$(TARGET)"
 
 fingerprint: verify-input
 	@mkdir -p "$(CONFIG_DIR)"
@@ -300,7 +300,7 @@ $(FUNCTION_BUILD)/%.bin: \
 	scripts/link_function.py \
 	$(ORIGINAL_LD_SCRIPT)
 	@mkdir -p "$(dir $@)"
-	$(PYTHON) scripts/link_function.py \
+	$(PY) scripts/link_function.py \
 		"$*" \
 		"$<" \
 		"$(ORIGINAL_ELF)" \
@@ -318,7 +318,7 @@ match:
 		exit 1; \
 	}
 	@$(MAKE) --no-print-directory "$(FUNCTION_BIN)"
-	$(PYTHON) scripts/match_function.py \
+	$(PY) scripts/match_function.py \
 		"$(FUNCTION)" \
 		"$(TARGET)" \
 		"$(ORIGINAL_ELF)" \
@@ -339,7 +339,7 @@ promote:
 	mkdir -p "$(BUILD)"; \
 	cp "$(MAIN_C)" "$$backup"; \
 	trap 'cp "$$backup" "$(MAIN_C)"; rm -f "$$backup"' EXIT HUP INT TERM; \
-	$(PYTHON) scripts/promote_function.py "$(MAIN_C)" "$(FUNCTION)"; \
+	$(PY) scripts/promote_function.py "$(MAIN_C)" "$(FUNCTION)"; \
 	$(MAKE) --no-print-directory build; \
 	$(MAKE) --no-print-directory verify; \
 	trap - EXIT HUP INT TERM; \
