@@ -7,7 +7,7 @@ INCLUDE_ASM("asm/nonmatchings/main", func_800100CC);
 #include "functions/func_800101D8.c"
 #include "functions/func_80010254.c"
 INCLUDE_ASM("asm/nonmatchings/main", func_80010334);
-INCLUDE_ASM("asm/nonmatchings/main", func_80010B00);
+#include "functions/func_80010B00.c"
 INCLUDE_ASM("asm/nonmatchings/main", func_80010C8C);
 INCLUDE_ASM("asm/nonmatchings/main", func_80010E18);
 #include "functions/func_800110F8.c"
