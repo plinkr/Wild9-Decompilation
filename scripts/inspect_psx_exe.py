@@ -17,7 +17,10 @@ def main() -> int:
     data = path.read_bytes()
 
     if len(data) < 0x30:
-        print(f"error: file is too small to be a PS-X EXE: {len(data)} bytes", file=sys.stderr)
+        print(
+            f"error: file is too small to be a PS-X EXE: {len(data)} bytes",
+            file=sys.stderr,
+        )
         return 1
 
     print(f"file       : {path}")
@@ -31,7 +34,11 @@ def main() -> int:
     print(f"d_size     : 0x{u32(data, 0x24):08X}")
     print(f"b_addr     : 0x{u32(data, 0x28):08X}")
     print(f"b_size     : 0x{u32(data, 0x2C):08X}")
-    print(f"stack_base : 0x{u32(data, 0x30):08X}" if len(data) >= 0x34 else "stack_base : unavailable")
+    print(
+        f"stack_base : 0x{u32(data, 0x30):08X}"
+        if len(data) >= 0x34
+        else "stack_base : unavailable"
+    )
     return 0
 
 

@@ -4,8 +4,6 @@
 #include "types.h"
 #include "functions.h"
 #include "globals.h"
-#include "include_asm.h"
-#include "decomp.h"
 
 void func_800100CC(void) {
     register s32 current asm("v0");

@@ -13,9 +13,7 @@ READELF = "mipsel-linux-gnu-readelf"
 LD = "mipsel-linux-gnu-ld"
 OBJCOPY = "mipsel-linux-gnu-objcopy"
 
-ADDRESS_SYMBOL_RE = re.compile(
-    r"^(?:func|D|DAT|PTR)_([0-9A-Fa-f]{8})$"
-)
+ADDRESS_SYMBOL_RE = re.compile(r"^(?:func|D|DAT|PTR)_([0-9A-Fa-f]{8})$")
 
 
 def run(*args: str) -> str:
@@ -164,8 +162,7 @@ def parse_gp(
             return entry[0]
 
     raise RuntimeError(
-        f"Could not determine _gp from "
-        f"{linker_script} or {original_elf}"
+        f"Could not determine _gp from {linker_script} or {original_elf}"
     )
 
 
@@ -241,18 +238,12 @@ def main() -> int:
     function_entry = original.get(function)
 
     if function_entry is None:
-        raise RuntimeError(
-            f"Function not found in original ELF: {function}"
-        )
+        raise RuntimeError(f"Function not found in original ELF: {function}")
 
-    function_address, function_size, function_type = (
-        function_entry
-    )
+    function_address, function_size, function_type = function_entry
 
     if function_type not in ("T", "t"):
-        raise RuntimeError(
-            f"Original symbol is not text: {function}"
-        )
+        raise RuntimeError(f"Original symbol is not text: {function}")
 
     # ---------------------------------------------------------------
     # Function object must contain text only.
@@ -275,14 +266,12 @@ def main() -> int:
     forbidden = {
         name: size
         for name, size in sections.items()
-        if name in forbidden_sections
-        and size != 0
+        if name in forbidden_sections and size != 0
     }
 
     if forbidden:
         detail = ", ".join(
-            f"{name}=0x{size:X}"
-            for name, size in sorted(forbidden.items())
+            f"{name}=0x{size:X}" for name, size in sorted(forbidden.items())
         )
 
         raise RuntimeError(
@@ -305,11 +294,7 @@ def main() -> int:
     # Resolve undefined symbols.
     # ---------------------------------------------------------------
 
-    undefined = sorted(
-        set(
-            nm_undefined(obj)
-        )
-    )
+    undefined = sorted(set(nm_undefined(obj)))
 
     ld_args: list[str] = [
         f"--defsym=_gp=0x{gp:08X}",
@@ -328,9 +313,7 @@ def main() -> int:
                 "its address cannot be inferred from its name"
             )
 
-        ld_args.append(
-            f"--defsym={symbol}=0x{address:08X}"
-        )
+        ld_args.append(f"--defsym={symbol}=0x{address:08X}")
 
     # ---------------------------------------------------------------
     # Temporary linker script.
@@ -352,22 +335,14 @@ def main() -> int:
         exist_ok=True,
     )
 
-    with tempfile.TemporaryDirectory(
-        prefix="wild9-link-"
-    ) as tempdir:
+    with tempfile.TemporaryDirectory(prefix="wild9-link-") as tempdir:
         tempdir_path = Path(tempdir)
 
-        script_path = (
-            tempdir_path / "function.ld"
-        )
+        script_path = tempdir_path / "function.ld"
 
-        elf_path = (
-            tempdir_path / "function.elf"
-        )
+        elf_path = tempdir_path / "function.elf"
 
-        script_path.write_text(
-            script
-        )
+        script_path.write_text(script)
 
         # -----------------------------------------------------------
         # Link function at its original VRAM.
@@ -425,9 +400,7 @@ def main() -> int:
 
 if __name__ == "__main__":
     try:
-        raise SystemExit(
-            main()
-        )
+        raise SystemExit(main())
 
     except (
         RuntimeError,

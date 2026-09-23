@@ -3,8 +3,6 @@
 
 #include "types.h"
 #include "functions.h"
-#include "globals.h"
-#include "include_asm.h"
 #include "decomp.h"
 
 void func_80011170(s32 arg0, void* arg1) {
@@ -18,7 +16,7 @@ void func_80011170(s32 arg0, void* arg1) {
         s0 = (u8*)arg1 + 4;
         do {
             if (*(u8*)(s0 + 0x2B) & 1) {
-                func_800110F8(s2, s1);
+                func_800110F8((UnkStruct*)s2, s1);
             } else if (func_80010B00(s2, s1) == 0) {
                 return;
             }

@@ -1,0 +1,5 @@
+-Iinclude
+--target=mipsel-linux-gnu
+-DM2CTX
+-DPERMUTER
+-Wno-unknown-pragmas

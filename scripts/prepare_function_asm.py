@@ -9,13 +9,9 @@ import sys
 import tempfile
 from pathlib import Path
 
-GP_REL_RE = re.compile(
-    r"%gp_rel\(\s*([A-Za-z_][A-Za-z0-9_]*)\s*\)"
-)
+GP_REL_RE = re.compile(r"%gp_rel\(\s*([A-Za-z_][A-Za-z0-9_]*)\s*\)")
 
-GP_OPERAND_RE = re.compile(
-    r"\b([A-Za-z_][A-Za-z0-9_]*)\s*\(\s*\$gp\s*\)"
-)
+GP_OPERAND_RE = re.compile(r"\b([A-Za-z_][A-Za-z0-9_]*)\s*\(\s*\$gp\s*\)")
 
 EXTERN_RE = re.compile(
     r"^(\s*)\.extern\s+"
@@ -23,13 +19,9 @@ EXTERN_RE = re.compile(
     r"\s*,\s*([0-9]+)\s*$"
 )
 
-LABEL_RE = re.compile(
-    r"^\s*([A-Za-z_][A-Za-z0-9_]*)\s*:\s*$"
-)
+LABEL_RE = re.compile(r"^\s*([A-Za-z_][A-Za-z0-9_]*)\s*:\s*$")
 
-SPACE_RE = re.compile(
-    r"^\s*\.space\s+([0-9]+)\s*$"
-)
+SPACE_RE = re.compile(r"^\s*\.space\s+([0-9]+)\s*$")
 
 
 def read_function(text: str, function: str) -> str:
@@ -51,9 +43,7 @@ def read_function(text: str, function: str) -> str:
             break
 
     if start_match is None:
-        raise RuntimeError(
-            f"Could not find {function} in reference assembly"
-        )
+        raise RuntimeError(f"Could not find {function} in reference assembly")
 
     start = start_match.end()
 
@@ -64,7 +54,7 @@ def read_function(text: str, function: str) -> str:
     )
 
     if end_match:
-        return text[start:start + end_match.start()]
+        return text[start : start + end_match.start()]
 
     next_function = re.search(
         r"^\s*glabel\s+[A-Za-z_][A-Za-z0-9_]*\s*$",
@@ -73,7 +63,7 @@ def read_function(text: str, function: str) -> str:
     )
 
     if next_function:
-        return text[start:start + next_function.start()]
+        return text[start : start + next_function.start()]
 
     return text[start:]
 
@@ -114,13 +104,8 @@ def parse_externs(
         # Only convert externally-defined objects which the original
         # function actually accesses through $gp and which fit the
         # compiler's small-data limit.
-        if (
-            symbol in gp_symbols
-            and 0 < size <= small_data_limit
-        ):
-            transformed.append(
-                f"{indent}.comm {symbol},{size}"
-            )
+        if symbol in gp_symbols and 0 < size <= small_data_limit:
+            transformed.append(f"{indent}.comm {symbol},{size}")
             converted.add(symbol)
         else:
             transformed.append(line)
@@ -296,9 +281,7 @@ def main() -> int:
         exist_ok=True,
     )
 
-    with tempfile.TemporaryDirectory(
-        prefix="wild9-maspsx-"
-    ) as tempdir:
+    with tempfile.TemporaryDirectory(prefix="wild9-maspsx-") as tempdir:
         temp_input = Path(tempdir) / "input.s"
         temp_input.write_text(prepared_asm)
 

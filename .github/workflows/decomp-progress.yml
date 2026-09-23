@@ -1,0 +1,33 @@
+name: Publish decomp.dev progress
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  publish-report:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate objdiff report
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s .decomp/report.json
+          jq -e '.version == 2' .decomp/report.json >/dev/null
+          jq -e '.measures and .units' .decomp/report.json >/dev/null
+
+      - name: Upload decomp.dev report
+        uses: actions/upload-artifact@v4
+        with:
+          name: slus_004.25_report
+          path: .decomp/report.json
+          if-no-files-found: error

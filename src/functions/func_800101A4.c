@@ -1,11 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // https://decomp.me/scratch/CtELX
 
-#include "types.h"
 #include "functions.h"
 #include "globals.h"
-#include "include_asm.h"
-#include "decomp.h"
 
 void func_800101A4(void) {
     if (D_800778FC != 0) {

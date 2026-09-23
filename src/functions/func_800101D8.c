@@ -2,10 +2,6 @@
 // https://decomp.me/scratch/axmWc
 
 #include "types.h"
-#include "functions.h"
-#include "globals.h"
-#include "include_asm.h"
-#include "decomp.h"
 
 #define ADDR_MASK 0xFFFFFF
 

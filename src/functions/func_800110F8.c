@@ -3,8 +3,6 @@
 
 #include "types.h"
 #include "functions.h"
-#include "globals.h"
-#include "include_asm.h"
 #include "decomp.h"
 
 void func_800110F8(UnkStruct* target, UnkStruct* source) {

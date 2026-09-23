@@ -342,6 +342,7 @@ promote:
 	$(PY) scripts/promote_function.py "$(MAIN_C)" "$(FUNCTION)"; \
 	$(MAKE) --no-print-directory build; \
 	$(MAKE) --no-print-directory verify; \
+	$(MAKE) --no-print-directory objdiff-report; \
 	trap - EXIT HUP INT TERM; \
 	rm -f "$$backup"
 
@@ -470,3 +471,59 @@ clean:
 
 distclean: clean
 	rm -rf "$(VENV)"
+
+# Local-only target objects are assembled from Splat's retail function assembly.
+# The .decomp/report.json file is committed; the original executable, asm/,
+# build/, and objdiff.json remain local/ignored.
+OBJDIFF_BUILD := $(BUILD)/objdiff
+OBJDIFF_TARGET_BUILD := $(OBJDIFF_BUILD)/target
+OBJDIFF_TARGET_SRC_BUILD := $(OBJDIFF_BUILD)/target-src
+OBJDIFF_CONFIG := objdiff.json
+OBJDIFF_REPORT := .decomp/report.json
+
+FUNCTION_SRCS := $(wildcard src/functions/*.c)
+FUNCTION_OBJS := $(patsubst src/functions/%.c,$(FUNCTION_BUILD)/%.o,$(FUNCTION_SRCS))
+
+# Evaluated by the recursive make after `split` has created asm/nonmatchings.
+OBJDIFF_TARGET_SRCS := $(wildcard asm/nonmatchings/main/func_*.s)
+OBJDIFF_TARGET_OBJS := $(patsubst asm/nonmatchings/main/%.s,$(OBJDIFF_TARGET_BUILD)/%.o,$(OBJDIFF_TARGET_SRCS))
+
+.PHONY: objdiff-targets objdiff-targets-after-split objdiff-base objdiff-config objdiff-report
+
+objdiff-targets: split
+	@$(MAKE) --no-print-directory objdiff-targets-after-split
+
+objdiff-targets-after-split: $(OBJDIFF_TARGET_OBJS)
+
+# Recreate the same MIPS GAS translation-unit state used by asm/800.s.
+$(OBJDIFF_TARGET_BUILD)/%.o: asm/nonmatchings/main/%.s \
+	$(SPLAT_STAMP) \
+	include/macro.inc \
+	scripts/binutils-env.sh \
+	Makefile
+	@mkdir -p "$(OBJDIFF_TARGET_SRC_BUILD)" "$(dir $@)"
+	@tmp="$(OBJDIFF_TARGET_SRC_BUILD)/$*.s.tmp"; \
+	out="$(OBJDIFF_TARGET_SRC_BUILD)/$*.s"; \
+	{ \
+		printf '%s\n' '.include "macro.inc"'; \
+		printf '%s\n' '.set noat'; \
+		printf '%s\n' '.set noreorder'; \
+		printf '%s\n' '.section .text, "ax"'; \
+		cat "$<"; \
+	} > "$$tmp"; \
+	mv "$$tmp" "$$out"; \
+	$(AS) $(ASFLAGS) "$$out" -o "$@"
+
+objdiff-base: $(FUNCTION_OBJS)
+
+objdiff-config: objdiff-targets objdiff-base
+	$(PY) scripts/generate_objdiff_config.py
+
+objdiff-report: objdiff-config
+	@command -v objdiff-cli >/dev/null || { \
+		echo "Missing objdiff-cli in PATH." >&2; \
+		exit 1; \
+	}
+	@mkdir -p "$(dir $(OBJDIFF_REPORT))"
+	objdiff-cli report generate -p . -o "$(OBJDIFF_REPORT)" -f json
+	@$(PY) -c 'import json; p="$(OBJDIFF_REPORT)"; d=json.load(open(p, encoding="utf-8")); m=d["measures"]; print("Objdiff: %.2f%% code, %d/%d functions" % (m.get("matched_code_percent", 0.0), m.get("matched_functions", 0), m.get("total_functions", 0)))'

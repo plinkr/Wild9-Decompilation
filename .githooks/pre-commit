@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+if git diff --cached --name-only | grep -Eq \
+    '^(src/|include/|asm/|Makefile|config/|scripts/)'; then
+    echo "Source/tooling changes detected; regenerating objdiff report..."
+    make objdiff-report
+    git add .decomp/report.json
+fi

@@ -115,3 +115,6 @@ Thumbs.db
 .env
 .env.*
 *.log
+
+# Local objdiff GUI configuration
+/objdiff.json

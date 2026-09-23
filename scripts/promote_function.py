@@ -6,15 +6,12 @@ import re
 import sys
 from pathlib import Path
 
-
-FUNCTION_RE = re.compile(
-    r"^func_([0-9A-Fa-f]{8})$"
-)
+FUNCTION_RE = re.compile(r"^func_([0-9A-Fa-f]{8})$")
 
 INCLUDE_ASM_RE = re.compile(
-    r'^[ \t]*INCLUDE_ASM\(\s*'
+    r"^[ \t]*INCLUDE_ASM\(\s*"
     r'"asm/nonmatchings/main"\s*,\s*'
-    r'([A-Za-z_][A-Za-z0-9_]*)\s*\)\s*;\s*$'
+    r"([A-Za-z_][A-Za-z0-9_]*)\s*\)\s*;\s*$"
 )
 
 C_INCLUDE_RE = re.compile(
@@ -27,9 +24,7 @@ def function_address(name: str) -> int:
     match = FUNCTION_RE.fullmatch(name)
 
     if match is None:
-        raise RuntimeError(
-            f"Function name is not func_XXXXXXXX: {name}"
-        )
+        raise RuntimeError(f"Function name is not func_XXXXXXXX: {name}")
 
     return int(match.group(1), 16)
 
@@ -58,20 +53,14 @@ def main() -> int:
 
     main_c = Path(sys.argv[1])
     function = sys.argv[2]
-    function_file = (
-        main_c.parent / "functions" / f"{function}.c"
-    )
+    function_file = main_c.parent / "functions" / f"{function}.c"
 
     if not function_file.is_file():
-        raise RuntimeError(
-            f"Missing function source: {function_file}"
-        )
+        raise RuntimeError(f"Missing function source: {function_file}")
 
     target_address = function_address(function)
 
-    lines = main_c.read_text().splitlines(
-        keepends=True
-    )
+    lines = main_c.read_text().splitlines(keepends=True)
 
     # Already promoted.
     for line in lines:
@@ -79,30 +68,19 @@ def main() -> int:
             name = entry_name(line)
 
             if name == function:
-                print(
-                    f"{function}: already promoted"
-                )
+                print(f"{function}: already promoted")
                 return 0
 
     # Replace the original INCLUDE_ASM placeholder when it exists.
     for index, line in enumerate(lines):
         match = INCLUDE_ASM_RE.match(line)
 
-        if (
-            match is not None
-            and match.group(1) == function
-        ):
-            lines[index] = (
-                f'#include "functions/{function}.c"\n'
-            )
+        if match is not None and match.group(1) == function:
+            lines[index] = f'#include "functions/{function}.c"\n'
 
-            main_c.write_text(
-                "".join(lines)
-            )
+            main_c.write_text("".join(lines))
 
-            print(
-                f"{function}: promoted in {main_c}"
-            )
+            print(f"{function}: promoted in {main_c}")
             return 0
 
     # The current main.c can legitimately be missing a placeholder
@@ -121,39 +99,27 @@ def main() -> int:
                 f'#include "functions/{function}.c"\n',
             )
 
-            main_c.write_text(
-                "".join(lines)
-            )
+            main_c.write_text("".join(lines))
 
-            print(
-                f"{function}: promoted in {main_c}"
-            )
+            print(f"{function}: promoted in {main_c}")
             return 0
 
     # Function belongs after the final function entry.
     if lines and not lines[-1].endswith("\n"):
         lines[-1] += "\n"
 
-    lines.append(
-        f'#include "functions/{function}.c"\n'
-    )
+    lines.append(f'#include "functions/{function}.c"\n')
 
-    main_c.write_text(
-        "".join(lines)
-    )
+    main_c.write_text("".join(lines))
 
-    print(
-        f"{function}: promoted in {main_c}"
-    )
+    print(f"{function}: promoted in {main_c}")
 
     return 0
 
 
 if __name__ == "__main__":
     try:
-        raise SystemExit(
-            main()
-        )
+        raise SystemExit(main())
     except RuntimeError as exc:
         print(
             f"error: {exc}",

@@ -4,7 +4,6 @@
 #include "types.h"
 #include "functions.h"
 #include "globals.h"
-#include "include_asm.h"
 #include "decomp.h"
 
 #define NODE_SIZE 0x18

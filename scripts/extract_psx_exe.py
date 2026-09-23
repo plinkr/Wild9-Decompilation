@@ -13,15 +13,18 @@ Redump filenames contain spaces and parentheses, so always quote the path
 
 Works with MODE2/2352 raw dumps (typical .bin) and cooked 2048-byte ISOs.
 """
+
 from __future__ import annotations
-import re, struct, sys
+
+import re
+import struct
+import sys
 from pathlib import Path
 
-DST_SEC = 2352       # raw sector size
-USER = 2048          # user data bytes per sector
-USER_OFF = 24        # offset of user data inside a raw MODE2 sector
+DST_SEC = 2352  # raw sector size
+USER = 2048  # user data bytes per sector
+USER_OFF = 24  # offset of user data inside a raw MODE2 sector
 SYNC = bytes([0x00] + [0xFF] * 10 + [0x00])
-
 
 
 def parse_cue(cue_path: Path) -> tuple[str, str]:
@@ -30,7 +33,9 @@ def parse_cue(cue_path: Path) -> tuple[str, str]:
     current_file = ""
     for raw in text.splitlines():
         line = raw.strip()
-        m = re.match(r'FILE\s+"([^"]+)"', line, re.I) or re.match(r"FILE\s+(\S+)", line, re.I)
+        m = re.match(r'FILE\s+"([^"]+)"', line, re.I) or re.match(
+            r"FILE\s+(\S+)", line, re.I
+        )
         if m:
             current_file = m.group(1)
             continue
@@ -50,17 +55,16 @@ def resolve_bin(cue_path: Path, name: str) -> Path:
     raise SystemExit(f"missing bin: {p}")
 
 
-
 def read_user_raw(data: bytes, lba: int) -> bytes:
     off = lba * DST_SEC
-    if data[off:off + 12] != SYNC:
+    if data[off : off + 12] != SYNC:
         raise KeyError(lba)
-    return data[off + USER_OFF: off + USER_OFF + USER]
+    return data[off + USER_OFF : off + USER_OFF + USER]
 
 
 def read_user_cooked(data: bytes, lba: int) -> bytes:
     off = lba * USER
-    return data[off: off + USER]
+    return data[off : off + USER]
 
 
 def parse_root(pvd_root: bytes) -> dict[str, tuple[int, int]]:
@@ -76,7 +80,7 @@ def parse_root(pvd_root: bytes) -> dict[str, tuple[int, int]]:
         extent = struct.unpack_from("<I", pvd_root, i + 2)[0]
         size = struct.unpack_from("<I", pvd_root, i + 10)[0]
         namelen = pvd_root[i + 32]
-        name = pvd_root[i + 33:i + 33 + namelen]
+        name = pvd_root[i + 33 : i + 33 + namelen]
         if b";" in name:
             name = name.split(b";")[0]
         if name not in (b"\x00", b"\x01"):
@@ -114,7 +118,6 @@ def normalize_exe_name(token: str) -> str:
     return token.upper()
 
 
-
 def extract(cue_or_bin: Path, out: Path | None = None) -> Path:
     src = cue_or_bin.resolve()
 
@@ -129,9 +132,10 @@ def extract(cue_or_bin: Path, out: Path | None = None) -> Path:
 
     cooked = (
         len(data) >= 17 * USER
-        and data[16 * USER + 1: 16 * USER + 6] == b"CD001"
-        and not (len(data) >= 17 * DST_SEC
-                 and data[16 * DST_SEC: 16 * DST_SEC + 12] == SYNC)
+        and data[16 * USER + 1 : 16 * USER + 6] == b"CD001"
+        and not (
+            len(data) >= 17 * DST_SEC and data[16 * DST_SEC : 16 * DST_SEC + 12] == SYNC
+        )
     )
     read_user = read_user_cooked if cooked else read_user_raw
     print(f"[*] sector layout: {'cooked 2048' if cooked else 'raw MODE2/2352'}")
@@ -143,8 +147,7 @@ def extract(cue_or_bin: Path, out: Path | None = None) -> Path:
     root_extent = struct.unpack_from("<I", pvd, 158)[0]
     root_size = struct.unpack_from("<I", pvd, 166)[0]
     root = b"".join(
-        read_user(data, root_extent + i)
-        for i in range((root_size + USER - 1) // USER)
+        read_user(data, root_extent + i) for i in range((root_size + USER - 1) // USER)
     )[:root_size]
     entries = parse_root(root)
 

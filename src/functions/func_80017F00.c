@@ -4,7 +4,6 @@
 #include "types.h"
 #include "functions.h"
 #include "globals.h"
-#include "include_asm.h"
 #include "decomp.h"
 
 void func_80017F00(u32 arg0, s32 arg1, s32 arg2) {

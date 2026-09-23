@@ -31,7 +31,10 @@ def psx_load_address(exe: Path) -> int:
 
 def main() -> int:
     if len(sys.argv) != 5:
-        print(f"usage: {sys.argv[0]} <function> <original-exe> <original-elf> <function-bin>", file=sys.stderr)
+        print(
+            f"usage: {sys.argv[0]} <function> <original-exe> <original-elf> <function-bin>",
+            file=sys.stderr,
+        )
         return 2
 
     function = sys.argv[1]

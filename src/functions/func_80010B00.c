@@ -3,8 +3,6 @@
 
 #include "types.h"
 #include "functions.h"
-#include "globals.h"
-#include "include_asm.h"
 #include "decomp.h"
 
 s32 func_80010B00(s32 arg0, void* arg1) {

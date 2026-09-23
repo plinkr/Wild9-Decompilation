@@ -9,14 +9,9 @@ import sys
 import tempfile
 from pathlib import Path
 
+GP_REL_RE = re.compile(r"%gp_rel\(\s*([A-Za-z_][A-Za-z0-9_]*)\s*\)")
 
-GP_REL_RE = re.compile(
-    r"%gp_rel\(\s*([A-Za-z_][A-Za-z0-9_]*)\s*\)"
-)
-
-GP_OPERAND_RE = re.compile(
-    r"\b([A-Za-z_][A-Za-z0-9_]*)\s*\(\s*\$gp\s*\)"
-)
+GP_OPERAND_RE = re.compile(r"\b([A-Za-z_][A-Za-z0-9_]*)\s*\(\s*\$gp\s*\)")
 
 EXTERN_RE = re.compile(
     r"^(\s*)\.extern\s+"
@@ -24,13 +19,9 @@ EXTERN_RE = re.compile(
     r"\s*,\s*([0-9]+)\s*$"
 )
 
-LABEL_RE = re.compile(
-    r"^\s*([A-Za-z_][A-Za-z0-9_]*)\s*:\s*$"
-)
+LABEL_RE = re.compile(r"^\s*([A-Za-z_][A-Za-z0-9_]*)\s*:\s*$")
 
-SPACE_RE = re.compile(
-    r"^\s*\.space\s+([0-9]+)\s*$"
-)
+SPACE_RE = re.compile(r"^\s*\.space\s+([0-9]+)\s*$")
 
 
 def gp_references(reference_asm: Path) -> set[str]:
@@ -65,13 +56,8 @@ def prepare_externs(
         indent, symbol, size_text = match.groups()
         size = int(size_text)
 
-        if (
-            symbol in gp_symbols
-            and 0 < size <= small_data_limit
-        ):
-            result.append(
-                f"{indent}.comm {symbol},{size}"
-            )
+        if symbol in gp_symbols and 0 < size <= small_data_limit:
+            result.append(f"{indent}.comm {symbol},{size}")
             converted.add(symbol)
         else:
             result.append(line)
@@ -130,13 +116,8 @@ def strip_generated_sbss(
 
             label_match = LABEL_RE.match(line)
 
-            if (
-                label_match is not None
-                and i + 1 < len(lines)
-            ):
-                space_match = SPACE_RE.match(
-                    lines[i + 1]
-                )
+            if label_match is not None and i + 1 < len(lines):
+                space_match = SPACE_RE.match(lines[i + 1])
 
                 if (
                     space_match is not None
@@ -172,9 +153,7 @@ def run_maspsx(
     )
 
     if completed.stderr:
-        sys.stderr.write(
-            completed.stderr
-        )
+        sys.stderr.write(completed.stderr)
 
     return completed.stdout
 
@@ -216,9 +195,7 @@ def main() -> int:
 
     gcc_asm = args.gcc_asm.read_text()
 
-    gp_symbols = gp_references(
-        args.reference_asm
-    )
+    gp_symbols = gp_references(args.reference_asm)
 
     prepared_asm, converted = prepare_externs(
         gcc_asm,
@@ -226,14 +203,10 @@ def main() -> int:
         args.small_data_limit,
     )
 
-    with tempfile.TemporaryDirectory(
-        prefix="wild9-main-maspsx-"
-    ) as tempdir:
+    with tempfile.TemporaryDirectory(prefix="wild9-main-maspsx-") as tempdir:
         temp_input = Path(tempdir) / "main.s"
 
-        temp_input.write_text(
-            prepared_asm
-        )
+        temp_input.write_text(prepared_asm)
 
         maspsx_output = run_maspsx(
             args.maspsx.resolve(),
@@ -252,9 +225,7 @@ def main() -> int:
         exist_ok=True,
     )
 
-    args.output.write_text(
-        final_asm
-    )
+    args.output.write_text(final_asm)
 
     return 0
 
