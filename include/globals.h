@@ -17,5 +17,8 @@ extern Global* D_800779A4;
 extern s32 D_800779A8;
 extern u8 D_8007D31C[];
 extern u8 D_8007D38C[];
+extern volatile s32 D_8006C394[3];
+extern volatile s32 D_8006C3A0[3];
+extern void* D_80077938;
 
 #endif
