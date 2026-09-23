@@ -8,6 +8,19 @@ This project reconstructs the NTSC-U Wild 9 PlayStation 1 executable as matching
 
 The codebase is structured around progressive decompilation. Matched functions are written as standalone C files under `src/functions/` and promoted into `src/main.c`, replacing the corresponding `INCLUDE_ASM` disassembly entries. Unmatched code remains as generated assembly slices. Each promoted function is independently compiled, linked, and matched against the original binary before being patched into the final rebuilt executable.
 
+## Useful links
+
+- [decomp.dev progress report](https://decomp.dev/plinkr/Wild9-Decompilation)
+- [Wild 9 Recomp](https://github.com/plinkr/Wild9Recomp)
+
+## Project status
+
+This is a work-in-progress decompilation project for the original Wild 9 PlayStation 1 executable. Its purpose is to reconstruct the game's source code and produce a byte-for-byte matching rebuild of the original binary.
+
+This repository is not a playable version of Wild 9. It contains the decompilation sources, build scripts, tools, and generated code required to reproduce the original executable from a legally obtained copy of the game. The original game executable and other copyrighted game assets are not included in this repository.
+
+For a playable native PC recompilation of Wild 9, see [Wild 9 Recomp](https://github.com/plinkr/Wild9Recomp).
+
 ## Features
 
 - Byte-for-byte matching rebuild against NTSC-U executable `SLUS_004.25`.
