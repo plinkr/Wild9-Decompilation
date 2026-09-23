@@ -1,20 +1,11 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
+// https://decomp.me/scratch/wVaJG
 
 #include "types.h"
 #include "functions.h"
 #include "globals.h"
 #include "include_asm.h"
 #include "decomp.h"
-
-void* func_8001E920(s32 arg0);
-void func_8001EBF8(void* arg0);
-
-typedef struct Global {
-    u8 pad[0x28];
-    u32 unk28;
-} Global;
-
-extern Global* D_800779A4;
 
 #define NODE_SIZE 0x18
 

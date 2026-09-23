@@ -50,4 +50,9 @@ typedef struct {
     u16 unk2A;    /* 0x2A */
 } UnkStruct;
 
+typedef struct Global {
+    u8 pad[0x28];
+    u32 unk28;
+} Global;
+
 #endif

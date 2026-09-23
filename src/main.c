@@ -2,7 +2,7 @@
 #include "include_asm.h"
 
 INCLUDE_ASM("asm/nonmatchings/main", func_80010000);
-INCLUDE_ASM("asm/nonmatchings/main", func_800100CC);
+#include "functions/func_800100CC.c"
 #include "functions/func_800101A4.c"
 #include "functions/func_800101D8.c"
 #include "functions/func_80010254.c"
