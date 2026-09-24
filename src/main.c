@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 #include "include_asm.h"
 
-INCLUDE_ASM("asm/nonmatchings/main", func_80010000);
+#include "functions/func_80010000.c"
 #include "functions/func_800100CC.c"
 #include "functions/func_800101A4.c"
 #include "functions/func_800101D8.c"

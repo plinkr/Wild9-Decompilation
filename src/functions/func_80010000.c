@@ -2,6 +2,7 @@
 // https://decomp.me/scratch/xKTeB
 
 #include "types.h"
+#include "decomp.h"
 #include "globals.h"
 
 void func_80010000(void) {
@@ -9,13 +10,12 @@ void func_80010000(void) {
     s32 temp_v0;
     s32 temp_v1;
 
-    base = (u8*)&D_8007B350;
+    base = (u8*)D_8007B350;
 
     if (M2C_FIELD(base, s32*, 0xF0) != 0) {
-        temp_v1 = D_8007C78C;
-        __asm__ volatile("" : "+r"(temp_v1));
-
+        temp_v1 = D_8007C78C[0];
         M2C_FIELD(base, s32*, 0x3C) = 0x3C;
+
         if (temp_v1 != 0) {
             M2C_FIELD(base, s32*, 0x40) = 0x384;
             return;
@@ -30,8 +30,8 @@ void func_80010000(void) {
     } else {
         M2C_FIELD(base, s32*, 0x40) = 0x384;
 
-        if ((D_8007C78C & 0x30000000) ||
-            (((D_8007C78C & 0x3000) == 0x3000) &&
+        if ((D_8007C78C[0] & 0x30000000) ||
+            (((D_8007C78C[0] & 0x3000) == 0x3000) &&
              (M2C_FIELD(base, s32*, 0x3C) < 0x3C))) {
             if (M2C_FIELD(base, s32*, 0x3C) > 0) {
                 M2C_FIELD(base, s32*, 0x3C) = M2C_FIELD(base, s32*, 0x3C) - 1;
@@ -40,6 +40,6 @@ void func_80010000(void) {
             return;
         }
 
-        D_8007B38C = 0x3C;
+        D_8007B38C[0] = 0x3C;
     }
 }
