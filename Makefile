@@ -365,6 +365,11 @@ format:
 	done
 	@find src include -type f \( -name '*.c' -o -name '*.h' \) -print0 | \
 		xargs -0 "$(CLANG_FORMAT)" --style=file -i
+	$(PYTHON) scripts/sort_function_declarations.py include/functions.h
+
+.PHONY: sort-functions
+sort-functions:
+	$(PYTHON) scripts/sort_function_declarations.py include/functions.h
 
 $(ORIGINAL_ELF): \
 	$(HEADER_OBJ) \

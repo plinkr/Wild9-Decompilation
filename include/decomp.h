@@ -55,4 +55,8 @@ typedef struct Global {
     u32 unk28;
 } Global;
 
+typedef struct {
+    u8 pad[0x114];
+} D_8007B350_Type;
+
 #endif
