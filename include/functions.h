@@ -51,6 +51,7 @@ void func_80027790(void);
 void func_800279E8(void);
 void func_8004EB38(void);
 void func_8004EC68(void);
+void func_8004EF08(s32*);
 void func_80050628(void);
 void func_800550DC(void);
 void func_80055100(void);
