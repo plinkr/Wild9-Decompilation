@@ -7,7 +7,8 @@
 
 void func_80010E18(void) {
     s32 sp20;
-    volatile s32 sp24;
+    s32 sp24;
+#define HANDLE (*(volatile s32*)&sp24)
     register s32 var_s0 asm("s0");
     register s32 var_s1 asm("s1");
     register u8* var_s2 asm("s2");
@@ -16,17 +17,16 @@ void func_80010E18(void) {
     register u8* var_s5 asm("s5");
     register u8* var_s6 asm("s6");
     register u8* var_s7 asm("s7");
-    register u8* var_fp asm("fp");
-    register s32 elementCount asm("v1");
+    volatile u8* var_fp;
+    s32 elementCount;
     s32 var_s0_2;
     s32 var_s0_3;
     s32 var_s1_3;
     s32 var_s1_5;
-    s32 temp_t0;
 
     if (D_80077B1C != 0) {
-        sp24 = func_8005F7A8(D_800683E8, 0);
-        if (sp24 != -1) {
+        HANDLE = func_8005F7A8(D_800683E8, 0);
+        if (HANDLE != -1) {
             var_s2 = (u8*)&D_8007C7A8;
             func_80058FE4(var_s2, D_800683F8);
 
@@ -36,16 +36,16 @@ void func_80010E18(void) {
                 do {
                     var_s1 += 1;
                 } while (*(u8*)(var_s1 + (s32)scan) != 0);
-                var_s1 -= 1;
             }
 
             var_s0 = 0;
             do {
                 var_s0 +=
-                    func_8005FA30(sp24, &D_8007C7A8[var_s0], var_s1 - var_s0);
+                    func_8005FA30(HANDLE, &D_8007C7A8[var_s0], var_s1 - var_s0);
             } while (var_s0 != var_s1);
 
             var_fp = (u8*)D_80077B1C;
+            __asm__ volatile("" : "+r"(var_fp));
             sp20 = 0;
             if (D_8007786C > 0) {
                 var_s7 = var_fp + 2;
@@ -73,18 +73,15 @@ void func_80010E18(void) {
 
                                 var_s1_3 = 0;
                                 if (D_8007C7A8[0] != 0) {
-                                    var_s1_3 = 0;
-                                    var_s1_3 += 1;
-                                    do {
+                                    while (D_8007C7A8[var_s1_3] != 0) {
                                         var_s1_3 += 1;
-                                    } while (D_8007C7A8[var_s1_3] != 0);
-                                    var_s1_3 -= 1;
+                                    }
                                 }
 
                                 var_s0_2 = 0;
                                 do {
                                     var_s0_2 += func_8005FA30(
-                                        sp24, &D_8007C7A8[var_s0_2],
+                                        HANDLE, &D_8007C7A8[var_s0_2],
                                         var_s1_3 - var_s0_2);
                                 } while (var_s0_2 != var_s1_3);
                             }
@@ -101,31 +98,27 @@ void func_80010E18(void) {
                     func_80058FE4(D_8007C7A8, D_800774C8);
                     var_s1_5 = 0;
                     if (D_8007C7A8[0] != 0) {
-                        var_s1_5 = 0;
-                        var_s1_5 += 1;
-                        do {
+                        while (D_8007C7A8[var_s1_5] != 0) {
                             var_s1_5 += 1;
-                        } while (D_8007C7A8[var_s1_5] != 0);
-                        var_s1_5 -= 1;
+                        }
                     }
 
                     var_s0_3 = 0;
                 loop_28:
                     var_s0_3 += func_8005FA30(
-                        sp24, &D_8007C7A8[var_s0_3], var_s1_5 - var_s0_3);
+                        HANDLE, &D_8007C7A8[var_s0_3], var_s1_5 - var_s0_3);
                     if (var_s0_3 != var_s1_5) {
                         goto loop_28;
                     }
 
                     var_s7 += 0x10;
                     var_fp += 0x10;
-                    temp_t0 = sp20 + 1;
-                    sp20 = temp_t0;
-                } while (temp_t0 < D_8007786C);
+                    sp20 += 1;
+                } while (sp20 < D_8007786C);
             }
 
             do {
-            } while (func_8005F774(sp24) < 0);
+            } while (func_8005F774(HANDLE) < 0);
         }
     }
 }
