@@ -9,23 +9,22 @@ void func_80012A38(void) {
     s32 var_a2;
     s32 var_a2_2;
     s32 var_a2_3;
+    u8* buffer;
     register u32 temp_s0 asm("s0");
     register u32 temp_s1 asm("s1");
-    register u8* buffer asm("s3");
     register u8* renderBuffer asm("s0");
     register s32 row asm("s4") = 0xA;
     register s32 y asm("s2");
     register void* object asm("s5");
     register u8* data asm("s1");
     register u8* callBuffer asm("a0");
-    register u8* callFormat asm("a1");
-    register void* temp_v1 asm("v1");
+    u8* callFormat;
     register s32 index asm("v0");
 
     temp_s1 = func_8001EC9C();
     temp_s0 = func_8001ED3C() >> 10;
-    func_80058FE4(
-        D_8007C7A8, D_80068718, temp_s1 >> 10, temp_s0, func_8001ED54());
+    func_80058FE4(buffer = D_8007C7A8, D_80068718, temp_s1 >> 10, temp_s0,
+                  func_8001ED54());
     buffer = D_8007C7A8;
     func_80025F44(buffer, row, row, 2);
     func_80058FE4(
@@ -51,65 +50,68 @@ void func_80012A38(void) {
     func_80058FE4(buffer, D_80068840, D_80077814);
     func_80025F44(buffer, row, 0x91, 2);
 
-    if (D_80077938 != 0) {
-        object = *(void**)((u8*)D_80077938 + 0x10);
-        temp_v1 = *(void**)((u8*)object + 0x2D0);
-        if (temp_v1 != 0) {
-            y = 0xA0;
-            index = *(s16*)((u8*)object + 0x2DA);
-            data = (u8*)(*(s32*)((u8*)temp_v1 + 4)) + (index << 5);
+    {
+        register void* temp_v1 asm("v1");
+        if (D_80077938 != 0) {
+            object = *(void**)((u8*)D_80077938 + 0x10);
+            temp_v1 = *(void**)((u8*)object + 0x2D0);
+            if (temp_v1 != 0) {
+                y = 0xA0;
+                index = *(s16*)((u8*)object + 0x2DA);
+                temp_v1 = (void*)(unsigned long)*(s32*)((u8*)temp_v1 + 4);
+                data = (u8*)temp_v1 + (index << 5);
 
-            callBuffer = buffer;
-            callFormat = D_800774CC;
-            __asm__ volatile("" : "+r"(callBuffer), "+r"(callFormat));
-            if (data[1] < 0xC) {
-                var_a2 = D_80069D94[data[1]];
-            } else {
-                var_a2 = D_80069DC0;
+                callBuffer = buffer;
+                callFormat = D_800774CC;
+                if (data[1] < 0xC) {
+                    var_a2 = D_80069D94[data[1]];
+                } else {
+                    var_a2 = D_80069DC0[0];
+                }
+                func_80058FE4(callBuffer, callFormat, var_a2);
+                renderBuffer = D_8007C7A8;
+                func_80025F44(renderBuffer, row, y, 0);
+                y += 0xA;
+
+                callBuffer = renderBuffer;
+                callFormat = D_800774CC;
+                if (data[2] < 3) {
+                    var_a2_2 = D_80069DC4[data[2]];
+                } else {
+                    var_a2_2 = D_80069DD0[0];
+                }
+                func_80058FE4(callBuffer, callFormat, var_a2_2);
+                renderBuffer = D_8007C7A8;
+                func_80025F44(renderBuffer, row, y, 0);
+                y += 0xA;
+
+                callBuffer = renderBuffer;
+                callFormat = D_800774CC;
+                if (data[3] < 3) {
+                    var_a2_3 = D_80069DC4[data[3]];
+                } else {
+                    var_a2_3 = D_80069DD0[0];
+                }
+                func_80058FE4(callBuffer, callFormat, var_a2_3);
+                renderBuffer = D_8007C7A8;
+                func_80025F44(renderBuffer, row, y, 0);
+                y += 0xF;
+
+                func_80025F44(D_80068858, row, y, 2);
+                y += 0xA;
+                func_80058FE4(renderBuffer, D_800774D0,
+                              *(u16*)((u8*)*(void**)((u8*)D_8007748C + 4) + 2));
+                func_80025F44(renderBuffer, row + 0x28, y, 0);
+                func_80058FE4(
+                    renderBuffer, D_800774D0, *(s16*)((u8*)object + 0x2DA));
+                func_80025F44(renderBuffer, row + 0x58, y, 0);
+                func_80058FE4(
+                    renderBuffer, D_800774D0, *(s16*)((u8*)object + 0x2DC));
+                func_80025F44(renderBuffer, row | 0x90, y, 0);
+                func_80058FE4(renderBuffer, D_800774D4,
+                              *(s32*)((u8*)object + 0x2FC) >> 12);
+                func_80025F44(renderBuffer, row + 0xB8, y, 0);
             }
-            func_80058FE4(callBuffer, callFormat, var_a2);
-            renderBuffer = D_8007C7A8;
-            func_80025F44(renderBuffer, row, y, 0);
-            y += 0xA;
-
-            callBuffer = renderBuffer;
-            callFormat = D_800774CC;
-            __asm__ volatile("" : "+r"(callBuffer), "+r"(callFormat));
-            if (data[2] < 3) {
-                var_a2_2 = D_80069DC4[data[2]];
-            } else {
-                var_a2_2 = D_80069DD0;
-            }
-            func_80058FE4(callBuffer, callFormat, var_a2_2);
-            func_80025F44(renderBuffer, row, y, 0);
-            y += 0xA;
-
-            callBuffer = renderBuffer;
-            callFormat = D_800774CC;
-            __asm__ volatile("" : "+r"(callBuffer), "+r"(callFormat));
-            if (data[3] < 3) {
-                var_a2_3 = D_80069DC4[data[3]];
-            } else {
-                var_a2_3 = D_80069DD0;
-            }
-            func_80058FE4(callBuffer, callFormat, var_a2_3);
-            func_80025F44(renderBuffer, row, y, 0);
-            y += 0xF;
-
-            func_80025F44(D_80068858, row, y, 2);
-            y += 0xA;
-            func_80058FE4(renderBuffer, D_800774D0,
-                          *(u16*)((u8*)*(void**)((u8*)D_8007748C + 4) + 2));
-            func_80025F44(renderBuffer, row + 0x28, y, 0);
-            func_80058FE4(
-                renderBuffer, D_800774D0, *(s16*)((u8*)object + 0x2DA));
-            func_80025F44(renderBuffer, row + 0x58, y, 0);
-            func_80058FE4(
-                renderBuffer, D_800774D0, *(s16*)((u8*)object + 0x2DC));
-            func_80025F44(renderBuffer, row | 0x90, y, 0);
-            func_80058FE4(
-                renderBuffer, D_800774D4, *(s32*)((u8*)object + 0x2FC) >> 12);
-            func_80025F44(renderBuffer, row + 0xAE, y, 0);
         }
     }
 }

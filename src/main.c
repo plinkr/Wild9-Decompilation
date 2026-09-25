@@ -24,7 +24,7 @@ INCLUDE_ASM("asm/nonmatchings/main", func_80011E18);
 INCLUDE_ASM("asm/nonmatchings/main", func_80011FDC);
 INCLUDE_ASM("asm/nonmatchings/main", func_80012048);
 INCLUDE_ASM("asm/nonmatchings/main", func_800120A4);
-INCLUDE_ASM("asm/nonmatchings/main", func_80012A38);
+#include "functions/func_80012A38.c"
 INCLUDE_ASM("asm/nonmatchings/main", func_80012F28);
 INCLUDE_ASM("asm/nonmatchings/main", func_800131E8);
 INCLUDE_ASM("asm/nonmatchings/main", func_80013210);

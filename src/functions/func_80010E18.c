@@ -48,7 +48,7 @@ void func_80010E18(void) {
             __asm__ volatile("" : "+r"(var_fp));
             sp20 = 0;
             if (D_8007786C > 0) {
-                var_s7 = var_fp + 2;
+                var_s7 = (u8*)(var_fp + 2);
                 do {
                     var_s6 = (u8*)*(s32*)(var_s7 + 2);
                     var_s5 = (u8*)*(s32*)(var_s7 + 0xA);
