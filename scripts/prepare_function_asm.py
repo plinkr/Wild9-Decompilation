@@ -195,14 +195,17 @@ def run_maspsx(
     input_path: Path,
     aspsx_version: str,
     small_data_limit: int,
+    expand_div: bool = False,
 ) -> str:
     command = [
         sys.executable,
         str(maspsx_script),
         f"--aspsx-version={aspsx_version}",
         f"-G{small_data_limit}",
-        str(input_path),
     ]
+    if expand_div:
+        command.append("--expand-div")
+    command.append(str(input_path))
 
     completed = subprocess.run(
         command,
@@ -260,6 +263,10 @@ def main() -> int:
         type=int,
         default=8,
     )
+    parser.add_argument(
+        "--expand-div",
+        action="store_true",
+    )
 
     args = parser.parse_args()
 
@@ -290,6 +297,7 @@ def main() -> int:
             temp_input,
             args.aspsx_version,
             args.small_data_limit,
+            args.expand_div,
         )
 
     final_asm = strip_generated_sbss(
