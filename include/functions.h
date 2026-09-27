@@ -14,6 +14,7 @@ s32 func_80010B00(s32 arg0, void* arg1);
 void func_80010E18(void);
 void func_800110F8(UnkStruct* target, UnkStruct* source);
 void func_80011170(s32 arg0, void* arg1);
+void func_800111FC(s32, void*);
 void func_80011B24(void);
 void func_800120A4(void);
 void func_80015224(void);

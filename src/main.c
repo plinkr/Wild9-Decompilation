@@ -13,7 +13,7 @@ INCLUDE_ASM("asm/nonmatchings/main", func_80010334);
 #include "functions/func_800110F8.c"
 #include "functions/func_80011170.c"
 INCLUDE_ASM("asm/nonmatchings/main", func_800111FC);
-INCLUDE_ASM("asm/nonmatchings/main", func_80011678);
+#include "functions/func_80011678.c"
 #include "functions/func_80011880.c"
 #include "functions/func_80011A50.c"
 INCLUDE_ASM("asm/nonmatchings/main", func_80011B24);
