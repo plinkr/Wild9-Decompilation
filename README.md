@@ -2,6 +2,8 @@
 
 Matching decompilation of Wild 9 for the Sony PlayStation 1, NTSC-U executable `SLUS_004.25`
 
+<img width="1800" height="841" alt="8c46df32775afcc338f82c9abe645cc2" src="https://github.com/user-attachments/assets/8414f47b-1f38-42c5-b154-d4ccd9990c5a" />
+
 ## Overview
 
 This project reconstructs the NTSC-U Wild 9 PlayStation 1 executable as matching C source and MIPS R3000A assembly. The primary goal is a byte-for-byte matching rebuild of the original executable (`SLUS_004.25`).
