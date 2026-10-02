@@ -55,6 +55,9 @@ void func_80026340(void);
 void func_8002733C(void);
 void func_80027790(void);
 void func_800279E8(void);
+void* func_80027B64(s32, s32*, s32*, s32);
+void* func_80028B98(s32, s32);
+void func_8003C104(void*);
 void func_8004EB38(void);
 void func_8004EC68(void);
 void func_8004EE58(void);
@@ -85,5 +88,4 @@ s32 func_8005F7A8(u8*, s32);
 void func_8005F870(void);
 s32 func_8005FA30(s32, u8*, s32);
 void func_800605F8(void);
-
 #endif
