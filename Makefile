@@ -259,7 +259,8 @@ $(MAIN_MASPSX_S): \
 		--output "$@" \
 		--maspsx "$(ROOT)/tools/maspsx/maspsx.py" \
 		--aspsx-version "$(ASPSX_VERSION)" \
-		--small-data-limit "$(SMALL_DATA_LIMIT)"
+		--small-data-limit "$(SMALL_DATA_LIMIT)" \
+		--expand-div
 
 $(MAIN_O): $(MAIN_MASPSX_S)
 	@mkdir -p "$(dir $@)"
@@ -288,7 +289,8 @@ $(FUNCTION_BUILD)/%.s: \
 		--output "$@" \
 		--maspsx "$(ROOT)/tools/maspsx/maspsx.py" \
 		--aspsx-version "$(ASPSX_VERSION)" \
-		--small-data-limit "$(SMALL_DATA_LIMIT)"
+		--small-data-limit "$(SMALL_DATA_LIMIT)" \
+		--expand-div
 
 $(FUNCTION_BUILD)/%.o: $(FUNCTION_BUILD)/%.s
 	@mkdir -p "$(dir $@)"

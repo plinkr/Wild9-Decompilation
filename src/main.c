@@ -6,7 +6,7 @@
 #include "functions/func_800101A4.c"
 #include "functions/func_800101D8.c"
 #include "functions/func_80010254.c"
-INCLUDE_ASM("asm/nonmatchings/main", func_80010334);
+#include "functions/func_80010334.c"
 #include "functions/func_80010B00.c"
 #include "functions/func_80010C8C.c"
 #include "functions/func_80010E18.c"

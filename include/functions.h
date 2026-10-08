@@ -30,7 +30,7 @@ void func_8001BBC8(void);
 void func_8001D490(void);
 void func_8001D5FC(void);
 void func_8001D89C(void);
-void func_8001D8D0(s32);
+void func_8001D8D0(void);
 void func_8001D8DC(s32 arg0, s32 arg1, s32 arg2);
 void func_8001DA00(void);
 void func_8001DAAC(void);

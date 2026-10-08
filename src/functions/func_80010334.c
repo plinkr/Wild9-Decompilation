@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // https://decomp.me/scratch/EyxOb
-// WIP
 
 #include "types.h"
 #include "functions.h"
@@ -9,12 +8,13 @@
 
 void func_80010334(void) {
     s32* object;
-    s32 one = 1;
+    s32 one;
     s32* inputState;
     s32 minusOne;
     register s32* spSave asm("sp");
     s32 result;
     s32 two;
+    s32 t1;
 
     func_8005F870();
     func_800578F4();
@@ -39,14 +39,14 @@ void func_80010334(void) {
     func_800550DC();
     object = D_8007B350;
     __asm__ volatile("" : "+r"(object));
-
+    __asm__("" : "=r"(t1) : "0"(1) : "memory");
     object[3] = 4;
     object[5] = 0x100;
     object[4] = 0x100;
     object[0x19] = 2;
-    object[6] = 1;
+    object[6] = t1;
     object[0x14] = -1;
-    object[0x0B] = 1;
+    object[0x0B] = t1;
 
     func_8005706C(3);
     func_8005706C(5);
@@ -71,6 +71,7 @@ void func_80010334(void) {
     D_8007C788[1] = 0;
 
     while (1) {
+        one = 1;
         minusOne = -1;
         func_80059F78(0);
         func_80055100();
@@ -236,7 +237,7 @@ void func_80010334(void) {
                     object[0x14] = minusOne;
                     object[0x32] |= 0x2000;
                 }
-                func_8001D8D0(flag);
+                func_8001D8D0();
             }
         }
 
