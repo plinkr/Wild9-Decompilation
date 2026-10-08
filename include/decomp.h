@@ -59,4 +59,17 @@ typedef struct {
     u8 pad[0x114];
 } D_8007B350_Type;
 
+typedef struct {
+    u8 unk00[0x24];
+    s32 count;
+    u8 unk28[0x18];
+    s32 unk40;
+} Ctx;
+
+typedef struct {
+    s32 f0;
+    s32 f1;
+    s32 f2;
+} Afc;
+
 #endif

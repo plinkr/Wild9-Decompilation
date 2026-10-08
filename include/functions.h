@@ -47,6 +47,7 @@ void func_8001F160(void);
 void func_8001F660(void);
 void func_8001F69C(void);
 void func_8001F78C(void);
+s32 func_8001F7B4(void);
 void func_80020BA4(void);
 void func_80025CE8(void);
 void func_80025DF4(void);

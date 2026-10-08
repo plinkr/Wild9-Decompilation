@@ -34,7 +34,7 @@ void func_8003D1C4(void) {
     r = func_8001E920(av * 2);
     D_80077B5C = r;
     rc = D_80077A44;
-    if (rc == (void*)&D_8006FA94[0]) {
+    if (rc == (void*)&D_8006FA94) {
         r = func_8001E920(*(s32*)((u8*)rc + 0x24) * 2);
         D_80077B60 = r;
     }
