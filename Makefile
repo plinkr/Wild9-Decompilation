@@ -51,6 +51,8 @@ MAIN_O := $(SRC_BUILD)/main.o
 
 FUNCTION ?=
 FUNCTION_C := src/functions/$(FUNCTION).c
+FUNCTION_SRC_DIR := src/functions
+PROTOTYPE_HEADERS := include/functions.h
 FUNCTION_BIN := $(FUNCTION_BUILD)/$(FUNCTION).bin
 
 ASPSX_VERSION := 2.77
@@ -121,6 +123,7 @@ ORIGINAL_LDFLAGS := \
 	asm \
 	c \
 	match \
+	check-prototypes \
 	promote \
 	format \
 	original-verify \
@@ -148,6 +151,7 @@ help:
 		'make c             Build src/main.c -> main.o' \
 		'make format        Format C/H files and add the AGPL SPDX header' \
 		'make match FUNCTION=func_XXXXXXXX  Build and compare one function' \
+		'make check-prototypes  Verify header prototypes against C definitions' \
 		'make promote FUNCTION=func_XXXXXXXX Replace matching ASM with C' \
 		'make original-verify Build the all-assembly reference and compare it' \
 		'make link          Link the canonical all-assembly ELF' \
@@ -326,6 +330,12 @@ match:
 		"$(ORIGINAL_ELF)" \
 		"$(FUNCTION_BIN)"
 
+check-prototypes:
+	$(PY) scripts/check_prototypes.py \
+		--header "$(PROTOTYPE_HEADERS)" \
+		--source-dir "$(FUNCTION_SRC_DIR)" \
+		--main-c "$(MAIN_C)"
+
 promote:
 	@test -n "$(FUNCTION)" || { \
 		echo "Usage: make promote FUNCTION=func_800101A4" >&2; \
@@ -342,6 +352,8 @@ promote:
 	cp "$(MAIN_C)" "$$backup"; \
 	trap 'cp "$$backup" "$(MAIN_C)"; rm -f "$$backup"' EXIT HUP INT TERM; \
 	$(PY) scripts/promote_function.py "$(MAIN_C)" "$(FUNCTION)"; \
+	$(MAKE) --no-print-directory check-prototypes; \
+	$(MAKE) --no-print-directory c; \
 	$(MAKE) --no-print-directory build; \
 	$(MAKE) --no-print-directory verify; \
 	$(MAKE) --no-print-directory objdiff-report; \
@@ -411,9 +423,6 @@ $(ELF): $(ORIGINAL_ELF)
 
 link: $(ELF)
 
-# The final binary starts from the byte-exact all-assembly reference.
-# Only functions explicitly promoted in src/main.c are replaced, and each
-# replacement must pass the standalone byte comparison first.
 $(BIN): $(ORIGINAL_BIN) $(MAIN_C) $(wildcard src/functions/*.c)
 	@set -e; \
 	mkdir -p "$(dir $@)"; \
@@ -480,9 +489,6 @@ clean:
 distclean: clean
 	rm -rf "$(VENV)"
 
-# Local-only target objects are assembled from Splat's retail function assembly.
-# The .decomp/report.json file is committed; the original executable, asm/,
-# build/, and objdiff.json remain local/ignored.
 OBJDIFF_BUILD := $(BUILD)/objdiff
 OBJDIFF_TARGET_BUILD := $(OBJDIFF_BUILD)/target
 OBJDIFF_TARGET_SRC_BUILD := $(OBJDIFF_BUILD)/target-src
@@ -492,7 +498,6 @@ OBJDIFF_REPORT := .decomp/report.json
 FUNCTION_SRCS := $(wildcard src/functions/*.c)
 FUNCTION_OBJS := $(patsubst src/functions/%.c,$(FUNCTION_BUILD)/%.o,$(FUNCTION_SRCS))
 
-# Evaluated by the recursive make after `split` has created asm/nonmatchings.
 OBJDIFF_TARGET_SRCS := $(wildcard asm/nonmatchings/main/func_*.s)
 OBJDIFF_TARGET_OBJS := $(patsubst asm/nonmatchings/main/%.s,$(OBJDIFF_TARGET_BUILD)/%.o,$(OBJDIFF_TARGET_SRCS))
 
@@ -503,7 +508,6 @@ objdiff-targets: split
 
 objdiff-targets-after-split: $(OBJDIFF_TARGET_OBJS)
 
-# Recreate the same MIPS GAS translation-unit state used by asm/800.s.
 $(OBJDIFF_TARGET_BUILD)/%.o: asm/nonmatchings/main/%.s \
 	$(SPLAT_STAMP) \
 	include/macro.inc \
