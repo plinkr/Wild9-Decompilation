@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 #include "functions.h"
-#include "globals.h"
 
 void* func_8004C464(void* arg0) {
     void* temp_v0;

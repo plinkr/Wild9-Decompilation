@@ -9,6 +9,8 @@ import sys
 import tempfile
 from pathlib import Path
 
+from aspsx_delay_slot import rewrite_translation_unit
+
 GP_REL_RE = re.compile(r"%gp_rel\(\s*([A-Za-z_][A-Za-z0-9_]*)\s*\)")
 
 GP_OPERAND_RE = re.compile(r"\b([A-Za-z_][A-Za-z0-9_]*)\s*\(\s*\$gp\s*\)")
@@ -228,6 +230,11 @@ def main() -> int:
     final_asm = strip_generated_sbss(
         maspsx_output,
         converted,
+    )
+
+    final_asm, _ = rewrite_translation_unit(
+        final_asm,
+        args.reference_asm.read_text(),
     )
 
     args.output.parent.mkdir(

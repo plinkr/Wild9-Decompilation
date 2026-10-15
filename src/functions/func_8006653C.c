@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 #include "functions.h"
-#include "globals.h"
 
 void func_8006653C(void* arg0, s8 arg1) {
     M2C_FIELD(arg0, s8*, 0x37) = 0x43;

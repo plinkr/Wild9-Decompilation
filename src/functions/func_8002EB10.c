@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 #include "functions.h"
-#include "globals.h"
 
 void func_8002EB10(void* arg0) {
     if ((u8)M2C_FIELD(arg0, u8*, 0xC) >= 0xE0U) {

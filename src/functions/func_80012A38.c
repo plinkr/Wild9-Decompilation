@@ -23,7 +23,7 @@ void func_80012A38(void) {
     register s32 index asm("v0");
 
     temp_s1 = func_8001EC9C();
-    temp_s0 = func_8001ED3C() >> 10;
+    temp_s0 = (u32)func_8001ED3C() >> 10;
     func_80058FE4(buffer = D_8007C7A8, D_80068718, temp_s1 >> 10, temp_s0,
                   func_8001ED54());
     buffer = D_8007C7A8;

@@ -291,14 +291,15 @@ The standalone matching pipeline is:
 src/functions/func_XXXXXXXX.c
     -> C preprocessor (CPP)
     -> GCC 2.8.1 PSX compiler
-    -> scripts/prepare_function_asm.py (small-data handling)
+    -> scripts/prepare_function_asm.py (small-data handling and ASPSX
+       delay-slot store preparation via scripts/aspsx_delay_slot.py)
     -> maspsx (ASPSX 2.77 translation)
     -> GNU assembler 2.42 (mipsel-linux-gnu-as)
     -> scripts/link_function.py (standalone link at original address)
     -> scripts/match_function.py (byte comparison against original binary)
 ```
 
-The project does not modify the `tools/maspsx` submodule. `scripts/prepare_function_asm.py` handles small-data preparation before invoking maspsx.
+The project does not modify the `tools/maspsx` submodule. `scripts/prepare_function_asm.py` handles small-data preparation before invoking maspsx, and `scripts/aspsx_delay_slot.py` restores the ASPSX expansion of bare macro stores that belong in a jump delay slot (`lui $at,%hi(sym)` hoisted before the jump, `sw $reg,%lo(sym)($at)` in the slot). The delay-slot rewrite only applies where the reference assembly proves the store is a delay-slot instruction.
 
 ## Development Workflow
 
@@ -423,6 +424,9 @@ scripts/
       Prepares standalone GCC assembly output before passing to maspsx.
   prepare_main_asm.py
       Prepares main translation unit assembly output.
+  aspsx_delay_slot.py
+      ASPSX-compatible expansion of bare macro stores that belong in a jump
+      delay slot (used by the two prepare scripts above).
   promote_function.py
       Replaces INCLUDE_ASM entries with C includes in src/main.c.
   normalize_splat_config.py

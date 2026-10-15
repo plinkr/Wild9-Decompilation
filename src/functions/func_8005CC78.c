@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 #include "functions.h"
-#include "globals.h"
 
 void func_8005CC78(s8* arg0, s8 arg1, s32 arg2) {
     s32 var_v0;

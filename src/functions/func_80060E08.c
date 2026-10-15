@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 #include "functions.h"
-#include "globals.h"
 
 s32 func_80060E08(void* arg0) {
     u8 temp_a1;
