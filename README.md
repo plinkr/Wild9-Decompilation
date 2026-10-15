@@ -27,8 +27,10 @@ For a playable native PC recompilation of Wild 9, see [Wild 9 Recomp](https://gi
 
 - Byte-for-byte matching rebuild against NTSC-U executable `SLUS_004.25`.
 - Splat-based executable splitting and disassembly generation.
-- GCC 2.8.0 PSX compiler toolchain with `maspsx` (ASPSX 2.77) assembly translation.
+- Automated per-function assembly splitting (`split_800_functions.py`) into `asm/nonmatchings/main/`.
+- GCC 2.8.1 PSX compiler toolchain with `maspsx` (ASPSX 2.77) assembly translation.
 - Isolated GNU binutils 2.42 environment targeting `mipsel-linux-gnu`.
+- In-tree toolchain download and verification (`make toolchain`).
 - Per-function standalone compilation, linking, and byte-exact verification.
 - Automated function promotion workflow integrating matching C code into the main translation unit.
 - Submodule integration for decompilation tools including `asm-differ`, `decomp-permuter`, `m2c`, `m2ctx`, `maspsx`, and `mipsmatch`.
@@ -92,43 +94,44 @@ make install
 
 This installs `splat64` and `spimdisasm` into `.venv`.
 
+Whenever you execute Python scripts or tools directly without Make, you must run them within this virtual environment. You can either activate the virtual environment in your current shell:
+
+```bash
+source .venv/bin/activate
+python scripts/extract_psx_exe.py ...
+```
+
+Or invoke the virtual environment Python interpreter directly without activating:
+
+```bash
+.venv/bin/python scripts/extract_psx_exe.py ...
+```
+
 ### 3. Toolchain installation
 
-The matching build requires GCC 2.8.0 PSX and GNU binutils 2.42 (`mipsel-linux-gnu`). Both are installed into `tools/toolchain/` without modifying system packages.
+The matching build requires GCC 2.8.1 PSX and GNU binutils 2.42 (`mipsel-linux-gnu`). Both are installed into `tools/toolchain/` without modifying system packages or requiring root access.
 
-Install GCC 2.8.0 PSX:
-
-```bash
-mkdir -p tools/toolchain/gcc-2.8.0-psx
-curl -fL "https://github.com/decompals/old-gcc/releases/download/0.17/gcc-2.8.0-psx.tar.gz" -o gcc-2.8.0-psx.tar.gz
-echo "1a3c956fe8aea5ebdb251749d95de2c84f023530584d7bd663744b5ec24050b7  gcc-2.8.0-psx.tar.gz" | sha256sum -c -
-tar -xzf gcc-2.8.0-psx.tar.gz -C tools/toolchain/gcc-2.8.0-psx --strip-components=1
-rm gcc-2.8.0-psx.tar.gz
-```
-
-Install the private GNU binutils 2.42 environment:
+Install both automatically using the Makefile:
 
 ```bash
-mkdir -p tools/toolchain/distfiles tools/toolchain/binutils-2.42 tools/toolchain/binutils-2.42/runtime
-
-curl -fL -o tools/toolchain/distfiles/binutils-mipsel-linux-gnu_2.42-2ubuntu1cross5_amd64.deb \
-  https://archive.ubuntu.com/ubuntu/pool/universe/b/binutils-mipsen/binutils-mipsel-linux-gnu_2.42-2ubuntu1cross5_amd64.deb
-
-curl -fL -o tools/toolchain/distfiles/libsframe1_2.42_amd64.deb \
-  https://archive.ubuntu.com/ubuntu/pool/main/b/binutils/libsframe1_2.42-4ubuntu2.10_amd64.deb
-
-ar x tools/toolchain/distfiles/binutils-mipsel-linux-gnu_2.42-2ubuntu1cross5_amd64.deb --output tools/toolchain/binutils-2.42
-tar --zstd -xf tools/toolchain/binutils-2.42/data.tar.zst -C tools/toolchain/binutils-2.42
-
-ar x tools/toolchain/distfiles/libsframe1_2.42_amd64.deb --output tools/toolchain/binutils-2.42/runtime
-tar --zstd -xf tools/toolchain/binutils-2.42/runtime/data.tar.zst -C tools/toolchain/binutils-2.42/runtime
+make toolchain
 ```
 
-See `docs/TOOLCHAIN.md` for additional details on toolchain verification.
+This downloads the precompiled GCC 2.8.1 PSX archive (`decompals/old-gcc` release `0.17`) and the Ubuntu Noble binutils 2.42 packages, validates their SHA-256 checksums, and extracts them into `tools/toolchain/`.
 
-### 4. Load the environment
+To verify that the in-tree toolchain is present:
 
-Load the private binutils environment in every shell session used for building:
+```bash
+make check-toolchain
+```
+
+If you prefer to download and unpack the packages manually, see `docs/TOOLCHAIN.md`.
+
+### 4. Load the environment (required for commands without Make)
+
+The Makefile automatically exports the private binutils `PATH` and `LD_LIBRARY_PATH` to all recipes, so executing `make` works without any manual environment setup.
+
+However, to execute any commands without Make in your shell (such as `mipsel-linux-gnu-as`, `mipsel-linux-gnu-ld`, `mipsel-linux-gnu-objcopy`, or standalone compilation scripts), you must first load the binutils environment:
 
 ```bash
 source scripts/binutils-env.sh
@@ -143,7 +146,7 @@ Wild 9 (NTSC-U) ships as `SLUS_004.25`. You need this executable in `iso/us/` be
 If you have a Redump-style dump of Wild 9 (`.cue` + `.bin`, or a bare `.bin`), use the helper script in this repo:
 
 ```bash
-python scripts/extract_psx_exe.py "/path/to/Wild 9 (USA).cue"
+.venv/bin/python scripts/extract_psx_exe.py "/path/to/Wild 9 (USA).cue"
 ```
 
 The script reads the filesystem inside the dump, follows `SYSTEM.CNF` to the boot executable, and writes `SLUS_004.25` to the current directory. Then move it into place:
@@ -156,7 +159,7 @@ mv SLUS_004.25 iso/us/SLUS_004.25
 You can also pass the output path directly:
 
 ```bash
-python scripts/extract_psx_exe.py "/path/to/Wild 9 (USA).bin" iso/us/SLUS_004.25
+.venv/bin/python scripts/extract_psx_exe.py "/path/to/Wild 9 (USA).bin" iso/us/SLUS_004.25
 ```
 
 #### Or copy it manually
@@ -180,20 +183,61 @@ Verify the installed tools:
 
 ```bash
 make versions
-mipsel-linux-gnu-as --version
-mipsel-linux-gnu-ld --version
-mipsel-linux-gnu-objcopy --version
+make check-toolchain
 ```
-
-All binutils utilities must report version 2.42.
 
 ## Build
 
-Generate the Splat disassembly output:
+### Splat disassembly and per-function splitting
+
+Disassemble the original binary and generate per-function assembly:
 
 ```bash
 make split
 ```
+
+Why this step exists:
+Splat reads `iso/us/SLUS_004.25` and disassembles the main code segment into a single large file, `asm/800.s`. Splat by itself does not split `asm/800.s` into individual function files.
+Previously, that per-function splitting had to be done by hand locally, which meant that cloning the repository and running `make split` left `asm/nonmatchings/main/` empty, breaking the build for new contributors.
+
+Now, `make split` handles the full pipeline:
+1. Splat runs to disassemble the binary into `asm/800.s` and data files.
+2. `scripts/split_800_functions.py` runs automatically to parse `asm/800.s` and write each function to `asm/nonmatchings/main/func_XXXXXXXX.s`.
+
+Running `make` (or `make all`) on a clean checkout will detect missing stamps and automatically bootstrap Splat and the function split before building.
+
+### Re-splitting functions without re-running Splat
+
+If `asm/800.s` already exists and you only want to regenerate the per-function files under `asm/nonmatchings/main/`:
+
+```bash
+make split-functions
+```
+
+You can also run the script directly using the virtual environment:
+
+```bash
+.venv/bin/python scripts/split_800_functions.py asm/800.s asm/nonmatchings/main
+```
+
+### Recreating src/main.c (opt-in)
+
+The repository provides a script to regenerate `src/main.c` with an `INCLUDE_ASM` stub for every function found in `asm/800.s`:
+
+```bash
+make generate-includes
+```
+
+Or run the script directly using the virtual environment:
+
+```bash
+.venv/bin/python scripts/generate_include_asm.py asm/800.s src/main.c
+```
+
+Why this is opt-in and NOT automatic:
+`src/main.c` is the primary translation unit tracked in git. As functions are decompiled and matched, their `INCLUDE_ASM` calls are replaced with `#include "functions/func_XXXXXXXX.c"`. If `make split` or `make build` regenerated `src/main.c` automatically, it would wipe out all promoted C functions. Only run `make generate-includes` if you are bootstrapping from scratch or intentionally resetting the translation unit.
+
+### Building and verifying
 
 Build and verify the baseline all-assembly reference:
 
@@ -246,7 +290,7 @@ The standalone matching pipeline is:
 ```text
 src/functions/func_XXXXXXXX.c
     -> C preprocessor (CPP)
-    -> GCC 2.8.0 PSX compiler
+    -> GCC 2.8.1 PSX compiler
     -> scripts/prepare_function_asm.py (small-data handling)
     -> maspsx (ASPSX 2.77 translation)
     -> GNU assembler 2.42 (mipsel-linux-gnu-as)
@@ -271,6 +315,8 @@ The disassembled assembly generated by `make split` is located at:
 ```text
 asm/nonmatchings/main/func_XXXXXXXX.s
 ```
+
+If `asm/nonmatchings/main/` is missing, run `make split-functions` to regenerate it from `asm/800.s`.
 
 Create a standalone C source file:
 
@@ -365,6 +411,10 @@ symbols/
 scripts/
   binutils-env.sh
       Sets PATH and LD_LIBRARY_PATH for the private binutils 2.42 environment.
+  split_800_functions.py
+      Splits asm/800.s into per-function assembly files in asm/nonmatchings/main/.
+  generate_include_asm.py
+      Generates src/main.c with INCLUDE_ASM stubs from asm/800.s (opt-in).
   match_function.py
       Compares standalone function binary against the original executable.
   link_function.py
@@ -379,6 +429,10 @@ scripts/
       Normalizes generated Splat split configuration.
   inspect_psx_exe.py
       Parses and displays PlayStation executable header information.
+  check_prototypes.py
+      Verifies header prototypes match C function signatures.
+  sort_declarations.py
+      Sorts declarations in header files.
 
 docs/
   STYLE.md
@@ -392,23 +446,28 @@ tools/
   Git submodules for decompilation tooling and local toolchain files.
 ```
 
-Generated assembly (`asm/`), linker scripts, object files, and build outputs (`build/`) are ignored by Git.
+Generated assembly (`asm/`), per-function assembly (`asm/nonmatchings/main/`), linker scripts, object files, and build outputs (`build/`) are ignored by Git.
 
 ## Useful Commands
 
 ```bash
 make help                           # Show available Makefile targets
+make toolchain                      # Install GCC 2.8.1 PSX and binutils 2.42 in-tree
+make check-toolchain                # Report whether the in-tree toolchain is present
 make versions                       # Print Python, splat, and spimdisasm versions
 make info                           # Display PS-X EXE header fields
 make fingerprint                    # Record SHA-1 and SHA-256 of the target binary
-make split                          # Run Splat to disassemble binary sections
+make split                          # Run Splat and regenerate per-function ASM
+make split-functions                # Regenerate asm/nonmatchings/main/ from asm/800.s
+make generate-includes              # Regenerate src/main.c INCLUDE_ASM stubs
 make original-verify                # Build and verify the baseline assembly reference
 make build                          # Build the final executable with promoted functions
 make verify                         # Compare build/SLUS_004.25 with the original
 make match FUNCTION=func_XXXXXXXX   # Build and match a single function
 make promote FUNCTION=func_XXXXXXXX # Promote a matched function in src/main.c
+make check-prototypes               # Verify header prototypes against C definitions
 make format                         # Format C/header files with clang-format
-make clean                          # Remove build artifacts
+make clean                          # Remove build artifacts and nonmatchings
 make distclean                      # Remove build artifacts and Python virtualenv
 ```
 
@@ -419,7 +478,6 @@ make distclean                      # Remove build artifacts and Python virtuale
 - Follow the conventions in `docs/STYLE.md`.
 - Before submitting a pull request, run:
   ```bash
-  source scripts/binutils-env.sh
   make format
   make verify
   ```

@@ -1,12 +1,12 @@
 # Wild 9 toolchain setup
 
 Wild 9 uses the toolchain recorded in `config/slus_004.25/toolchain.json`.
-The compiler is GCC 2.8.0 PSX and the assembler and linker are GNU binutils
+The compiler is GCC 2.8.1 PSX and the assembler and linker are GNU binutils
 2.42. Follow the GCC section first, then install the private binutils build.
 
-## GCC 2.8.0 PSX
+## GCC 2.8.1 PSX
 
-The project uses the PSX build of GCC 2.8.0 distributed by
+The project uses the PSX build of GCC 2.8.1 distributed by
 `decompals/old-gcc`, release `0.17`. This is a precompiled historical build;
 the repository does not require rebuilding GCC from source.
 
@@ -15,12 +15,12 @@ Run this script from the repository root:
 ```bash
 set -e
 
-URL="https://github.com/decompals/old-gcc/releases/download/0.17/gcc-2.8.0-psx.tar.gz"
-SHA256="1a3c956fe8aea5ebdb251749d95de2c84f023530584d7bd663744b5ec24050b7"
+URL="https://github.com/decompals/old-gcc/releases/download/0.17/gcc-2.8.1-psx.tar.gz"
+SHA256="f6f6e883942d4d3289d048236c672e71ed410e546aaae8ff655952f1567e1be0"
 
 TMP_DIR="$(mktemp -d)"
-ARCHIVE="$TMP_DIR/gcc-2.8.0-psx.tar.gz"
-DEST="$(pwd)/tools/toolchain/gcc-2.8.0-psx"
+ARCHIVE="$TMP_DIR/gcc-2.8.1-psx.tar.gz"
+DEST="$(pwd)/tools/toolchain/gcc-2.8.1-psx"
 
 trap 'rm -rf "$TMP_DIR"' EXIT
 
@@ -36,36 +36,36 @@ tar -xzf "$ARCHIVE" -C "$DEST" --strip-components=1
 test -x "$DEST/cc1"
 
 echo
-echo "GCC 2.8.0 PSX installed correctly:"
+echo "GCC 2.8.1 PSX installed correctly:"
 echo "  $DEST/cc1"
 ```
 
 Verify the installed compiler:
 
 ```bash
-test -x tools/toolchain/gcc-2.8.0-psx/cc1
-timeout 2s tools/toolchain/gcc-2.8.0-psx/cc1 -version
+test -x tools/toolchain/gcc-2.8.1-psx/cc1
+timeout 2s tools/toolchain/gcc-2.8.1-psx/cc1 -version
 ```
 
 The timeout is intentional. This historical build can print its version and
 then fail to terminate by itself. The output should begin with:
 
 ```text
-GNU C version 2.8.0 (mips-sony-psx) compiled by GNU C version 9.4.0.
+GNU C version 2.8.1 (mips-sony-psx) compiled by GNU C version 9.4.0.
 ```
 
-The installed archive `gcc-2.8.0-psx.tar.gz` must have this SHA-256 checksum:
+The installed archive `gcc-2.8.1-psx.tar.gz` must have this SHA-256 checksum:
 
 ```text
-1a3c956fe8aea5ebdb251749d95de2c84f023530584d7bd663744b5ec24050b7
+f6f6e883942d4d3289d048236c672e71ed410e546aaae8ff655952f1567e1be0
 ```
 
-The matching pipeline invokes the GCC driver at `tools/toolchain/gcc-2.8.0-psx/gcc`, which uses the bundled GCC 2.8.0 PSX compiler components.
+The matching pipeline invokes the GCC driver at `tools/toolchain/gcc-2.8.1-psx/gcc`, which uses the bundled GCC 2.8.1 PSX compiler components.
 
 The archive is downloaded from the `0.17` release of `decompals/old-gcc`:
 
 ```text
-https://github.com/decompals/old-gcc/releases/download/0.17/gcc-2.8.0-psx.tar.gz
+https://github.com/decompals/old-gcc/releases/download/0.17/gcc-2.8.1-psx.tar.gz
 ```
 
 ## Binutils 2.42 setup

@@ -6,6 +6,7 @@ PY := $(VENV)/bin/python
 PIP := $(PY) -m pip
 
 ROOT := $(CURDIR)
+SELF_MAKEFILE := $(firstword $(MAKEFILE_LIST))
 
 TARGET := iso/us/SLUS_004.25
 
@@ -34,7 +35,8 @@ UNDEF_SYMS := undefined_syms_auto.txt
 
 HEADER_SRC := asm/header.s
 MAIN_ASM_SRC := asm/800.s
-MAIN_ASM_INCLUDES := $(wildcard asm/nonmatchings/main/*.s)
+NONMATCH_DIR := asm/nonmatchings/main
+MAIN_ASM_INCLUDES := $(wildcard $(NONMATCH_DIR)/*.s)
 DATA_SRCS := $(wildcard asm/data/*.s)
 
 HEADER_OBJ := $(ASM_BUILD)/header.o
@@ -59,9 +61,30 @@ ASPSX_VERSION := 2.77
 SMALL_DATA_LIMIT := 8
 
 SPLAT_STAMP := $(BUILD)/.splat.stamp
+SPLIT_STAMP := $(BUILD)/.split-functions.stamp
 
-CC := tools/toolchain/gcc-2.8.0-psx/gcc
-CPP := tools/toolchain/gcc-2.8.0-psx/cpp
+# ---------------------------------------------------------------------------
+# Toolchain: GCC 2.8.1 PSX and binutils 2.42, both extracted in-tree
+# ---------------------------------------------------------------------------
+TOOLCHAIN_DIR := tools/toolchain
+GCC_DIR       := $(TOOLCHAIN_DIR)/gcc-2.8.1-psx
+BINUTILS_DIR  := $(TOOLCHAIN_DIR)/binutils-2.42
+
+GCC_STAMP      := $(TOOLCHAIN_DIR)/.gcc-2.8.1-psx.stamp
+BINUTILS_STAMP := $(TOOLCHAIN_DIR)/.binutils-2.42.stamp
+TOOLCHAIN_STAMPS := $(GCC_STAMP) $(BINUTILS_STAMP)
+
+BINUTILS_USR_BIN := $(CURDIR)/$(BINUTILS_DIR)/usr/bin
+BINUTILS_USR_LIB := $(CURDIR)/$(BINUTILS_DIR)/usr/lib/x86_64-linux-gnu
+BINUTILS_RT_LIB  := $(CURDIR)/$(BINUTILS_DIR)/runtime/usr/lib/x86_64-linux-gnu
+
+# Make the private binutils visible to every recipe, so the build works even
+# when scripts/binutils-env.sh has not been sourced in the current shell.
+export PATH := $(BINUTILS_USR_BIN):$(PATH)
+export LD_LIBRARY_PATH := $(BINUTILS_USR_LIB):$(BINUTILS_RT_LIB):$(LD_LIBRARY_PATH)
+
+CC := $(GCC_DIR)/gcc
+CPP := $(GCC_DIR)/cpp
 MASPSX := $(PY) tools/maspsx/maspsx.py
 
 AS := mipsel-linux-gnu-as
@@ -83,13 +106,13 @@ CCFLAGS := \
 	-g0 \
 	-O2 \
 	-G$(SMALL_DATA_LIMIT) \
-	-Btools/toolchain/gcc-2.8.0-psx/
+	-B$(GCC_DIR)/
 
 FUNCTION_CCFLAGS := \
 	-g0 \
 	-O2 \
 	-G$(SMALL_DATA_LIMIT) \
-	-Btools/toolchain/gcc-2.8.0-psx/
+	-B$(GCC_DIR)/
 
 CPPFLAGS := \
 	-P \
@@ -109,17 +132,22 @@ ORIGINAL_LDFLAGS := \
 	-Map $(BUILD)/slus_004.25.original.map
 
 .PHONY: \
+	all \
 	help \
 	venv \
 	install \
 	tools \
+	toolchain \
+	check-toolchain \
 	versions \
 	info \
 	fingerprint \
 	verify-input \
 	create-config \
 	split \
+	split-functions \
 	prepare \
+	generate-includes \
 	asm \
 	c \
 	match \
@@ -131,34 +159,59 @@ ORIGINAL_LDFLAGS := \
 	build \
 	verify \
 	clean \
-	distclean
+	distclean \
+	sort-declarations \
+	objdiff-targets \
+	objdiff-targets-after-split \
+	objdiff-base \
+	objdiff-config \
+	objdiff-report
 
-.DEFAULT_GOAL := build
+.DEFAULT_GOAL := all
+
+# Splat outputs and per-function .s files are used through $(wildcard) below,
+# which is evaluated at parse time. When either is missing, run prepare first
+# and re-invoke make so a fresh parse sees the generated files.
+ifeq ($(SPLAT_BOOTSTRAPPED),)
+ifneq ($(and $(wildcard $(SPLAT_STAMP)),$(wildcard $(SPLIT_STAMP))),)
+all: $(TOOLCHAIN_STAMPS) build
+else
+all: $(TOOLCHAIN_STAMPS)
+	@$(MAKE) --no-print-directory prepare
+	@$(MAKE) --no-print-directory SPLAT_BOOTSTRAPPED=1 all
+endif
+else
+all: $(TOOLCHAIN_STAMPS) build
+endif
 
 help:
 	@printf '%s\n' \
-		'make venv          Create the local Python virtual environment' \
-		'make install       Install pinned Python dependencies' \
-		'make tools         Initialize the Git submodules' \
-		'make versions      Print Python/splat/spimdisasm versions' \
-		'make info          Inspect SLUS_004.25 and print PS-X EXE header fields' \
-		'make fingerprint   Record SHA-1/SHA-256 of the local executable' \
-		'make verify-input  Verify that the local SLUS_004.25 exists' \
-		'make create-config Generate and normalize the initial Splat config' \
-		'make split         Run Splat with the reviewed project config' \
-		'make prepare       Generate Splat outputs when needed' \
-		'make asm           Assemble header/800/data objects' \
-		'make c             Build src/main.c -> main.o' \
-		'make format        Format C/H files and add the AGPL SPDX header' \
+		'make venv              Create the local Python virtual environment' \
+		'make install           Install pinned Python dependencies' \
+		'make tools             Initialize the Git submodules' \
+		'make toolchain         Install GCC 2.8.1 PSX and binutils 2.42 in-tree' \
+		'make check-toolchain   Report whether the in-tree toolchain is present' \
+		'make versions          Print Python/splat/spimdisasm versions' \
+		'make info              Inspect SLUS_004.25 and print PS-X EXE header fields' \
+		'make fingerprint       Record SHA-1/SHA-256 of the local executable' \
+		'make verify-input      Verify that the local SLUS_004.25 exists' \
+		'make create-config     Generate and normalize the initial Splat config' \
+		'make split             Run Splat and regenerate per-function ASM' \
+		'make split-functions   Regenerate asm/nonmatchings/main/ from asm/800.s' \
+		'make prepare           Generate Splat and split outputs when needed' \
+		'make generate-includes Regenerate src/main.c INCLUDE_ASM stubs' \
+		'make asm               Assemble header/800/data objects' \
+		'make c                 Build src/main.c -> main.o' \
+		'make format            Format C/H files and add the AGPL SPDX header' \
 		'make match FUNCTION=func_XXXXXXXX  Build and compare one function' \
 		'make check-prototypes  Verify header prototypes against C definitions' \
 		'make promote FUNCTION=func_XXXXXXXX Replace matching ASM with C' \
-		'make original-verify Build the all-assembly reference and compare it' \
-		'make link          Link the canonical all-assembly ELF' \
-		'make build         Build final SLUS_004.25 binary' \
-		'make verify        Compare build/SLUS_004.25 with the original' \
-		'make clean         Remove generated build files' \
-		'make distclean     Remove generated build files and the virtualenv'
+		'make original-verify   Build the all-assembly reference and compare it' \
+		'make link              Link the canonical all-assembly ELF' \
+		'make build             Build final SLUS_004.25 binary' \
+		'make verify            Compare build/SLUS_004.25 with the original' \
+		'make clean             Remove generated build files' \
+		'make distclean         Remove generated build files and the virtualenv'
 
 venv:
 	@test -x "$(PY)" || "$(PYTHON)" -m venv "$(VENV)"
@@ -169,6 +222,93 @@ install: venv
 
 tools:
 	git submodule update --init --recursive
+
+# ---------------------------------------------------------------------------
+# GCC 2.8.1 PSX (decompals/old-gcc release 0.17, precompiled)
+# ---------------------------------------------------------------------------
+$(GCC_STAMP):
+	@set -e; \
+	if [ -x "$(GCC_DIR)/cc1" ] && [ -x "$(GCC_DIR)/gcc" ]; then \
+		echo "GCC 2.8.1 PSX already installed at $(GCC_DIR); skipping download."; \
+		touch "$@"; \
+		exit 0; \
+	fi; \
+	mkdir -p "$(TOOLCHAIN_DIR)"; \
+	URL="https://github.com/decompals/old-gcc/releases/download/0.17/gcc-2.8.1-psx.tar.gz"; \
+	SHA256="f6f6e883942d4d3289d048236c672e71ed410e546aaae8ff655952f1567e1be0"; \
+	TMP_DIR="$$(mktemp -d)"; \
+	ARCHIVE="$$TMP_DIR/gcc-2.8.1-psx.tar.gz"; \
+	trap 'rm -rf "$$TMP_DIR"' EXIT; \
+	echo "== Installing GCC 2.8.1 PSX =="; \
+	curl -fL "$$URL" -o "$$ARCHIVE"; \
+	echo "$$SHA256  $$ARCHIVE" | sha256sum -c -; \
+	rm -rf "$(GCC_DIR)"; \
+	mkdir -p "$(GCC_DIR)"; \
+	tar -xzf "$$ARCHIVE" -C "$(GCC_DIR)" --strip-components=1; \
+	test -x "$(GCC_DIR)/cc1"; \
+	echo "GCC 2.8.1 PSX installed at $(GCC_DIR)"; \
+	touch "$@"
+
+# ---------------------------------------------------------------------------
+# binutils 2.42 (Ubuntu Noble amd64 .deb, extracted in-tree)
+# ---------------------------------------------------------------------------
+$(BINUTILS_STAMP):
+	@set -e; \
+	if [ -x "$(BINUTILS_DIR)/usr/bin/mipsel-linux-gnu-as" ] \
+	   && [ -x "$(BINUTILS_DIR)/usr/bin/mipsel-linux-gnu-ld" ] \
+	   && [ -f "$(BINUTILS_DIR)/runtime/usr/lib/x86_64-linux-gnu/libsframe.so.1" ]; then \
+		echo "binutils 2.42 already installed at $(BINUTILS_DIR); skipping download."; \
+		touch "$@"; \
+		exit 0; \
+	fi; \
+	mkdir -p "$(TOOLCHAIN_DIR)/distfiles"; \
+	BINUTILS_DEB="$(CURDIR)/$(TOOLCHAIN_DIR)/distfiles/binutils-mipsel-linux-gnu_2.42-2ubuntu1cross5_amd64.deb"; \
+	LIBSFRAME_DEB="$(CURDIR)/$(TOOLCHAIN_DIR)/distfiles/libsframe1_2.42_amd64.deb"; \
+	echo "== Installing binutils 2.42 =="; \
+	curl -L --fail -o "$$BINUTILS_DEB" \
+		"https://archive.ubuntu.com/ubuntu/pool/universe/b/binutils-mipsen/binutils-mipsel-linux-gnu_2.42-2ubuntu1cross5_amd64.deb"; \
+	curl -L --fail -o "$$LIBSFRAME_DEB" \
+		"https://archive.ubuntu.com/ubuntu/pool/main/b/binutils/libsframe1_2.42-4ubuntu2.10_amd64.deb"; \
+	rm -rf "$(BINUTILS_DIR)"; \
+	mkdir -p "$(BINUTILS_DIR)"; \
+	( cd "$(BINUTILS_DIR)" && ar x "$$BINUTILS_DEB" ); \
+	tar --zstd -xf "$(BINUTILS_DIR)/data.tar.zst" -C "$(BINUTILS_DIR)"; \
+	rm -f "$(BINUTILS_DIR)/data.tar.zst" "$(BINUTILS_DIR)/control.tar.zst" "$(BINUTILS_DIR)/debian-binary"; \
+	mkdir -p "$(BINUTILS_DIR)/runtime"; \
+	( cd "$(BINUTILS_DIR)/runtime" && ar x "$$LIBSFRAME_DEB" ); \
+	tar --zstd -xf "$(BINUTILS_DIR)/runtime/data.tar.zst" -C "$(BINUTILS_DIR)/runtime"; \
+	rm -f "$(BINUTILS_DIR)/runtime/data.tar.zst" "$(BINUTILS_DIR)/runtime/control.tar.zst" "$(BINUTILS_DIR)/runtime/debian-binary"; \
+	test -x "$(BINUTILS_DIR)/usr/bin/mipsel-linux-gnu-as"; \
+	test -x "$(BINUTILS_DIR)/usr/bin/mipsel-linux-gnu-ld"; \
+	test -f "$(BINUTILS_DIR)/runtime/usr/lib/x86_64-linux-gnu/libsframe.so.1"; \
+	echo "binutils 2.42 installed at $(BINUTILS_DIR)"; \
+	touch "$@"
+
+toolchain: $(TOOLCHAIN_STAMPS)
+
+check-toolchain:
+	@echo "== Toolchain status =="
+	@if [ -x "$(GCC_DIR)/cc1" ] && [ -x "$(GCC_DIR)/gcc" ]; then \
+		echo "  GCC 2.8.1 PSX   : present  ($(GCC_DIR))"; \
+	else \
+		echo "  GCC 2.8.1 PSX   : missing"; \
+	fi
+	@if [ -x "$(BINUTILS_DIR)/usr/bin/mipsel-linux-gnu-as" ] \
+	   && [ -x "$(BINUTILS_DIR)/usr/bin/mipsel-linux-gnu-ld" ]; then \
+		echo "  binutils 2.42   : present  ($(BINUTILS_DIR))"; \
+	else \
+		echo "  binutils 2.42   : missing"; \
+	fi
+	@if [ -f "$(GCC_STAMP)" ]; then \
+		echo "  GCC stamp       : $(GCC_STAMP)"; \
+	else \
+		echo "  GCC stamp       : absent"; \
+	fi
+	@if [ -f "$(BINUTILS_STAMP)" ]; then \
+		echo "  binutils stamp  : $(BINUTILS_STAMP)"; \
+	else \
+		echo "  binutils stamp  : absent"; \
+	fi
 
 versions: install
 	$(PY) --version
@@ -223,30 +363,57 @@ $(SPLAT_STAMP): $(CONFIG) | verify-input
 
 $(ORIGINAL_LD_SCRIPT): $(SPLAT_STAMP)
 
-prepare: $(SPLAT_STAMP)
+# asm/800.s and asm/header.s are side effects of $(SPLAT_STAMP); the recipe
+# only fails loudly when someone deletes the .s but keeps the stamp.
+$(HEADER_SRC) $(MAIN_ASM_SRC): $(SPLAT_STAMP)
+	@test -f "$@" || { \
+		echo "Missing $@; run 'make clean && make' to regenerate." >&2; \
+		exit 1; \
+	}
+
+$(SPLIT_STAMP): $(MAIN_ASM_SRC) scripts/split_800_functions.py
+	@mkdir -p "$(BUILD)"
+	@rm -rf "$(NONMATCH_DIR)"
+	$(PY) scripts/split_800_functions.py "$(MAIN_ASM_SRC)" "$(NONMATCH_DIR)"
+	@touch "$@"
+
+# Same side-effect pattern as above, for the per-function .s files.
+$(NONMATCH_DIR)/%.s: $(SPLIT_STAMP)
+	@test -f "$@" || { \
+		echo "Missing $@; run 'make split-functions' to regenerate." >&2; \
+		exit 1; \
+	}
+
+prepare: $(SPLAT_STAMP) $(SPLIT_STAMP)
 
 split: verify-input install $(CONFIG)
 	@$(MAKE) --no-print-directory prepare
 
-$(HEADER_OBJ): $(HEADER_SRC) $(SPLAT_STAMP)
+split-functions: $(SPLIT_STAMP)
+
+# main.c is hand-maintained after promotion, so this is opt-in only.
+generate-includes: $(MAIN_ASM_SRC) scripts/generate_include_asm.py
+	$(PY) scripts/generate_include_asm.py "$(MAIN_ASM_SRC)" "$(MAIN_C)"
+
+$(HEADER_OBJ): $(HEADER_SRC) $(SPLAT_STAMP) | $(TOOLCHAIN_STAMPS)
 	@mkdir -p "$(dir $@)"
 	$(AS) $(ASFLAGS) "$<" -o "$@"
 
-$(MAIN_ASM_OBJ): $(MAIN_ASM_SRC) $(SPLAT_STAMP)
+$(MAIN_ASM_OBJ): $(MAIN_ASM_SRC) $(SPLAT_STAMP) | $(TOOLCHAIN_STAMPS)
 	@mkdir -p "$(dir $@)"
 	$(AS) $(ASFLAGS) "$<" -o "$@"
 
-$(DATA_BUILD)/%.o: asm/data/%.s $(SPLAT_STAMP)
+$(DATA_BUILD)/%.o: asm/data/%.s $(SPLAT_STAMP) | $(TOOLCHAIN_STAMPS)
 	@mkdir -p "$(dir $@)"
 	$(AS) $(ASFLAGS) "$<" -o "$@"
 
 asm: $(HEADER_OBJ) $(MAIN_ASM_OBJ) $(DATA_OBJS)
 
-$(MAIN_I): $(MAIN_C_DEPS)
+$(MAIN_I): $(MAIN_C_DEPS) | $(TOOLCHAIN_STAMPS)
 	@mkdir -p "$(dir $@)"
 	$(CPP) $(CPPFLAGS) "$(MAIN_C)" -o "$@"
 
-$(MAIN_GCC_S): $(MAIN_I)
+$(MAIN_GCC_S): $(MAIN_I) | $(TOOLCHAIN_STAMPS)
 	@mkdir -p "$(dir $@)"
 	$(CC) $(CCFLAGS) -S "$<" -o "$@"
 
@@ -255,7 +422,9 @@ $(MAIN_MASPSX_S): \
 	$(MAIN_ASM_SRC) \
 	$(MAIN_ASM_INCLUDES) \
 	$(SPLAT_STAMP) \
-	scripts/prepare_main_asm.py
+	$(SPLIT_STAMP) \
+	scripts/prepare_main_asm.py \
+	| $(TOOLCHAIN_STAMPS)
 	@mkdir -p "$(dir $@)"
 	$(PY) scripts/prepare_main_asm.py \
 		--gcc-asm "$<" \
@@ -266,17 +435,17 @@ $(MAIN_MASPSX_S): \
 		--small-data-limit "$(SMALL_DATA_LIMIT)" \
 		--expand-div
 
-$(MAIN_O): $(MAIN_MASPSX_S)
+$(MAIN_O): $(MAIN_MASPSX_S) | $(TOOLCHAIN_STAMPS)
 	@mkdir -p "$(dir $@)"
 	$(AS) $(ASFLAGS) "$<" -o "$@"
 
 c: $(MAIN_O)
 
-$(FUNCTION_BUILD)/%.i: src/functions/%.c
+$(FUNCTION_BUILD)/%.i: src/functions/%.c | $(TOOLCHAIN_STAMPS)
 	@mkdir -p "$(dir $@)"
 	$(CPP) $(CPPFLAGS) "$<" -o "$@"
 
-$(FUNCTION_BUILD)/%.gcc.s: $(FUNCTION_BUILD)/%.i
+$(FUNCTION_BUILD)/%.gcc.s: $(FUNCTION_BUILD)/%.i | $(TOOLCHAIN_STAMPS)
 	@mkdir -p "$(dir $@)"
 	$(CC) $(FUNCTION_CCFLAGS) -S "$<" -o "$@"
 
@@ -284,7 +453,8 @@ $(FUNCTION_BUILD)/%.s: \
 	$(FUNCTION_BUILD)/%.gcc.s \
 	$(MAIN_ASM_SRC) \
 	$(SPLAT_STAMP) \
-	scripts/prepare_function_asm.py
+	scripts/prepare_function_asm.py \
+	| $(TOOLCHAIN_STAMPS)
 	@mkdir -p "$(dir $@)"
 	$(PY) scripts/prepare_function_asm.py \
 		--gcc-asm "$<" \
@@ -296,7 +466,7 @@ $(FUNCTION_BUILD)/%.s: \
 		--small-data-limit "$(SMALL_DATA_LIMIT)" \
 		--expand-div
 
-$(FUNCTION_BUILD)/%.o: $(FUNCTION_BUILD)/%.s
+$(FUNCTION_BUILD)/%.o: $(FUNCTION_BUILD)/%.s | $(TOOLCHAIN_STAMPS)
 	@mkdir -p "$(dir $@)"
 	$(AS) $(ASFLAGS) "$<" -o "$@"
 
@@ -304,7 +474,8 @@ $(FUNCTION_BUILD)/%.bin: \
 	$(FUNCTION_BUILD)/%.o \
 	$(ORIGINAL_ELF) \
 	scripts/link_function.py \
-	$(ORIGINAL_LD_SCRIPT)
+	$(ORIGINAL_LD_SCRIPT) \
+	| $(TOOLCHAIN_STAMPS)
 	@mkdir -p "$(dir $@)"
 	$(PY) scripts/link_function.py \
 		"$*" \
@@ -381,8 +552,6 @@ format:
 		xargs -0 "$(CLANG_FORMAT)" --style=file -i
 	$(PYTHON) scripts/sort_declarations.py include/functions.h include/globals.h
 
-.PHONY: sort-declarations
-
 sort-declarations:
 	$(PYTHON) scripts/sort_declarations.py include/functions.h include/globals.h
 
@@ -392,7 +561,8 @@ $(ORIGINAL_ELF): \
 	$(DATA_OBJS) \
 	$(ORIGINAL_LD_SCRIPT) \
 	$(UNDEF_FUNCS) \
-	$(UNDEF_SYMS)
+	$(UNDEF_SYMS) \
+	| $(TOOLCHAIN_STAMPS)
 	@mkdir -p "$(dir $@)"
 	$(LD) $(ORIGINAL_LDFLAGS) \
 		"$(HEADER_OBJ)" \
@@ -462,7 +632,7 @@ $(BIN): $(ORIGINAL_BIN) $(MAIN_C) $(wildcard src/functions/*.c)
 		dd if="$$bin" of="$@" bs=1 seek="$$rom_offset" conv=notrunc status=none; \
 	done
 
-build: $(BIN)
+build: $(TOOLCHAIN_STAMPS) $(BIN)
 
 verify: verify-input $(BIN)
 	@echo
@@ -485,6 +655,7 @@ verify: verify-input $(BIN)
 
 clean:
 	rm -rf "$(BUILD)"
+	rm -rf "$(NONMATCH_DIR)"
 
 distclean: clean
 	rm -rf "$(VENV)"
@@ -498,21 +669,19 @@ OBJDIFF_REPORT := .decomp/report.json
 FUNCTION_SRCS := $(wildcard src/functions/*.c)
 FUNCTION_OBJS := $(patsubst src/functions/%.c,$(FUNCTION_BUILD)/%.o,$(FUNCTION_SRCS))
 
-OBJDIFF_TARGET_SRCS := $(wildcard asm/nonmatchings/main/func_*.s)
-OBJDIFF_TARGET_OBJS := $(patsubst asm/nonmatchings/main/%.s,$(OBJDIFF_TARGET_BUILD)/%.o,$(OBJDIFF_TARGET_SRCS))
-
-.PHONY: objdiff-targets objdiff-targets-after-split objdiff-base objdiff-config objdiff-report
+OBJDIFF_TARGET_SRCS := $(wildcard $(NONMATCH_DIR)/func_*.s)
+OBJDIFF_TARGET_OBJS := $(patsubst $(NONMATCH_DIR)/%.s,$(OBJDIFF_TARGET_BUILD)/%.o,$(OBJDIFF_TARGET_SRCS))
 
 objdiff-targets: split
 	@$(MAKE) --no-print-directory objdiff-targets-after-split
 
 objdiff-targets-after-split: $(OBJDIFF_TARGET_OBJS)
 
-$(OBJDIFF_TARGET_BUILD)/%.o: asm/nonmatchings/main/%.s \
-	$(SPLAT_STAMP) \
+$(OBJDIFF_TARGET_BUILD)/%.o: $(NONMATCH_DIR)/%.s \
+	$(SPLIT_STAMP) \
 	include/macro.inc \
-	scripts/binutils-env.sh \
-	Makefile
+	$(SELF_MAKEFILE) \
+	| $(TOOLCHAIN_STAMPS)
 	@mkdir -p "$(OBJDIFF_TARGET_SRC_BUILD)" "$(dir $@)"
 	@tmp="$(OBJDIFF_TARGET_SRC_BUILD)/$*.s.tmp"; \
 	out="$(OBJDIFF_TARGET_SRC_BUILD)/$*.s"; \

@@ -1,8 +1,8 @@
 {
-    "name": "wild9-gcc-2.8.0-psq43",
+    "name": "wild9-gcc-2.8.1-psq43",
     "compiler": {
         "family": "GCC",
-        "version": "2.8.0",
+        "version": "2.8.1",
         "target": "PSX",
         "source": "decompals/old-gcc",
         "release": "0.17"
