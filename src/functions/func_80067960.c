@@ -2,4 +2,4 @@
 
 #include "types.h"
 
-u16 func_80067960(u16* a0) { return *a0; }
+u16 func_80067960(u16* arg0) { return *arg0; }
