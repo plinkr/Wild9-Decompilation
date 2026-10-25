@@ -16,7 +16,8 @@
 
 [submodule "tools/maspsx"]
 	path = tools/maspsx
-	url = https://github.com/mkst/maspsx.git
+	url = https://github.com/plinkr/maspsx.git
+	branch = feat/mflo-load-nop
 
 [submodule "tools/mipsmatch"]
 	path = tools/mipsmatch

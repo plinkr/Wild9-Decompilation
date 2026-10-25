@@ -160,16 +160,9 @@ loop_done:
         q7 = prod / temp_t5;
         tmpv = *(volatile s32*)&diffs.d3;
         delta = tmpv * delta;
-        {
-            u16 first = *(u16*)var_t7;
-            // !FAKE: the ROM has "mflo v1 / lhu v0,0(t7) / nop / div": aspsx
-            // keeps two instructions between mflo and div even when the first
-            // one is a load. maspsx does not emit that nop after a load, so it
-            // is written here.
-            __asm__ volatile("nop");
-            q8 = delta / temp_t5;
-            *(s16*)var_t9 = first + q0;
-        }
+        q8 = delta / temp_t5;
+
+        *(s16*)var_t9 = (u16) * (u16*)var_t7 + q0;
         *(s16*)(var_t6 - 0x10) = (u16) * (u16*)(var_t7 + 2) + q1;
         *(s16*)(var_t6 - 0xE) = (u16) * (u16*)(var_t7 + 4) + q2;
         *(s16*)(var_t6 - 0xC) = (u16) * (u16*)(var_t7 + 6) + q3;
