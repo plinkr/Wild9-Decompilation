@@ -22,7 +22,7 @@ INCLUDE_ASM("asm/nonmatchings/main", func_80011B2C);
 #include "functions/func_80011F2C.c"
 #include "functions/func_80011F94.c"
 INCLUDE_ASM("asm/nonmatchings/main", func_80011FDC);
-INCLUDE_ASM("asm/nonmatchings/main", func_80012048);
+#include "functions/func_80012048.c"
 INCLUDE_ASM("asm/nonmatchings/main", func_800120A4);
 #include "functions/func_80012A38.c"
 INCLUDE_ASM("asm/nonmatchings/main", func_80012F28);

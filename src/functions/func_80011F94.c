@@ -15,7 +15,7 @@ void func_80011F94(void) {
         flags = original & ~2;
         base[0x308 / 4] = flags;
         if (flags == 0) {
-            func_8004EF08(base);
+            func_8004EF08();
         }
     }
 }
