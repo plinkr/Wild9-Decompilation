@@ -40,6 +40,7 @@ void func_8001BBC8(void);
 void func_8001BBE0(void* arg0);
 s32 func_8001C8A8(void);
 s32 func_8001CDB0(void);
+void func_8001D344(void);
 void func_8001D3D4(void);
 void func_8001D400(void);
 s32 func_8001D490();
