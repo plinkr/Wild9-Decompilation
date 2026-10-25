@@ -7,7 +7,7 @@ void func_80031CC4(void* arg0) {
 
     temp_a0 = M2C_FIELD(arg0, s32*, 0x18);
     if (temp_a0 < 0) {
-        func_8001D490(temp_a0);
+        func_8001D490();
         return;
     }
     func_8001D4DC(temp_a0);
