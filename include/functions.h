@@ -70,6 +70,7 @@ void func_8001F660(void);
 void func_8001F69C(void);
 void func_8001F78C(void);
 s32 func_8001F7B4(void);
+s32 func_8001F7EC(s32 arg0);
 void func_80020A64(s32 arg0, void* arg1);
 void func_80020BA4(void);
 s32 func_80024300(s32 arg0, s32 arg1, s32 arg2);
