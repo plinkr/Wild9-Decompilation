@@ -76,4 +76,11 @@ typedef struct {
     s32 f2;
 } Afc;
 
+typedef struct {
+    s32 unk0;
+    s32 unk4;
+    s32 unk8;
+    s32 unkC;
+} D_8007C100_Entry;
+
 #endif

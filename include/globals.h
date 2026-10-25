@@ -157,6 +157,7 @@ extern s32 D_8007C788[];
 extern s32 D_8007C78C[];
 extern u8 D_8007C7A8[];
 extern s32 D_8007CDC4;
+extern void* D_8007D1B0[];
 extern u8 D_8007D31C[];
 extern u8 D_8007D38C[];
 extern u8 D_8007D818[];

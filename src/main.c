@@ -131,10 +131,10 @@ INCLUDE_ASM("asm/nonmatchings/main", func_8001D8DC);
 #include "functions/func_8001D96C.c"
 #include "functions/func_8001D9B8.c"
 #include "functions/func_8001DA00.c"
-INCLUDE_ASM("asm/nonmatchings/main", func_8001DA34);
-INCLUDE_ASM("asm/nonmatchings/main", func_8001DA70);
+#include "functions/func_8001DA34.c"
+#include "functions/func_8001DA70.c"
 INCLUDE_ASM("asm/nonmatchings/main", func_8001DAAC);
-INCLUDE_ASM("asm/nonmatchings/main", func_8001DB68);
+#include "functions/func_8001DB68.c"
 INCLUDE_ASM("asm/nonmatchings/main", func_8001DCE8);
 INCLUDE_ASM("asm/nonmatchings/main", func_8001DE60);
 #include "functions/func_8001DED4.c"
@@ -152,7 +152,7 @@ INCLUDE_ASM("asm/nonmatchings/main", func_8001E920);
 INCLUDE_ASM("asm/nonmatchings/main", func_8001EA44);
 INCLUDE_ASM("asm/nonmatchings/main", func_8001EB58);
 INCLUDE_ASM("asm/nonmatchings/main", func_8001EBF8);
-INCLUDE_ASM("asm/nonmatchings/main", func_8001EC9C);
+#include "functions/func_8001EC9C.c"
 INCLUDE_ASM("asm/nonmatchings/main", func_8001ECCC);
 #include "functions/func_8001ED10.c"
 #include "functions/func_8001ED3C.c"
