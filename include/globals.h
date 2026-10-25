@@ -72,6 +72,9 @@ extern u8 D_800774C8[];
 extern u8 D_800774CC[];
 extern u8 D_800774D0[];
 extern u8 D_800774D4[];
+extern u8 D_800774DC;
+extern u8 D_800774DD;
+extern u8 D_800774DE;
 extern s32 D_8007754C;
 extern s32 D_80077550;
 extern s32 D_80077558;
@@ -142,5 +145,6 @@ extern u8 D_8007D31C[];
 extern u8 D_8007D38C[];
 extern s32 D_80080F24;
 extern s32 D_80080F34;
+extern void* D_80081218[];
 
 #endif

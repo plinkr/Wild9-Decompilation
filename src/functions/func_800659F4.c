@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
+
 #include "functions.h"
 
 void func_800659F4(void* arg0, s8 arg1, s32 arg2, s8 arg3) {
