@@ -128,9 +128,9 @@ INCLUDE_ASM("asm/nonmatchings/main", func_8001D5FC);
 #include "functions/func_8001D89C.c"
 #include "functions/func_8001D8D0.c"
 INCLUDE_ASM("asm/nonmatchings/main", func_8001D8DC);
-INCLUDE_ASM("asm/nonmatchings/main", func_8001D96C);
-INCLUDE_ASM("asm/nonmatchings/main", func_8001D9B8);
-INCLUDE_ASM("asm/nonmatchings/main", func_8001DA00);
+#include "functions/func_8001D96C.c"
+#include "functions/func_8001D9B8.c"
+#include "functions/func_8001DA00.c"
 INCLUDE_ASM("asm/nonmatchings/main", func_8001DA34);
 INCLUDE_ASM("asm/nonmatchings/main", func_8001DA70);
 INCLUDE_ASM("asm/nonmatchings/main", func_8001DAAC);
