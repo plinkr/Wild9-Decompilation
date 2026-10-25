@@ -88,4 +88,34 @@ typedef struct D_80077968_Node {
     struct D_80077968_Node* next;
 } D_80077968_Node;
 
+// 12-byte entry of D_8007C2D8; bit 0 and bit 1 of `flags` are tested by
+// func_80021120 and func_800211E0.
+typedef struct {
+    s32 flags;
+    s16 unk4[4];
+} D_8007C2D8_Entry;
+
+// 8-byte entry of D_8007C8C0 (0xA0 entries): a registered object and its
+// counter (see func_800262F8 / func_80026340 in the playground).
+typedef struct {
+    void* obj;
+    s32 count;
+} D_8007C8C0_Entry;
+
+// Sprite-like object filled by func_800278E0 (only the fields it writes).
+typedef struct {
+    s16 unk0;     /* 0x00 */
+    s16 unk2;     /* 0x02 */
+    s16 unk4;     /* 0x04 */
+    u8 pad6[0x2]; /* 0x06 */
+    u8 unk8;      /* 0x08 */
+    u8 unk9;      /* 0x09 */
+    u8 unkA;      /* 0x0A */
+    u8 padB;      /* 0x0B */
+    u8 unkC;      /* 0x0C */
+    u8 unkD;      /* 0x0D */
+    u8 padE[0xA]; /* 0x0E */
+    void* obj;    /* 0x18 */
+} D_800278E0_Sprite;
+
 #endif
