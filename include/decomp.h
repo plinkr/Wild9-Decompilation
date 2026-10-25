@@ -83,4 +83,9 @@ typedef struct {
     s32 unkC;
 } D_8007C100_Entry;
 
+// Node of the list built by func_8001F9D0; only the link is known so far.
+typedef struct D_80077968_Node {
+    struct D_80077968_Node* next;
+} D_80077968_Node;
+
 #endif
