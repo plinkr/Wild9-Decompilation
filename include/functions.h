@@ -97,6 +97,7 @@ void func_80027790(void);
 s32 func_800278E0(D_800278E0_Sprite* sprite, s32 index);
 void func_800279E8(void);
 void* func_80027B64(s32, s32*, s32*, s32);
+void func_80027C48(D_80077B14_Node* node);
 s32 func_800286C4();
 s32 func_80028754(void*, s32);
 void* func_80028B98(s32, s32);

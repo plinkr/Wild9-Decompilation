@@ -3,8 +3,8 @@
 #include "functions.h"
 #include "globals.h"
 
-// Releases the nodes D_80077B14 and D_80077754, then empties the list
-// D_80077980 (head) / D_800779A0 (tail) and its counter.
+// Frees the node pool D_80077B14 and the sprite pool D_80077754, then empties
+// the free list (D_80077980), the active list (D_800779A0) and its counter.
 void func_800279E8(void) {
     func_8001EA44(D_80077B14);
     func_8001EA44(D_80077754);

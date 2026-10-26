@@ -118,4 +118,20 @@ typedef struct {
     void* obj;    /* 0x18 */
 } D_800278E0_Sprite;
 
+// 0x54-byte node of the pool D_80077B14 (built by func_80027944). Nodes move
+// between the active list (head D_800779A0) and the free list (head
+// D_80077980, linked through `next` only).
+typedef struct D_80077B14_Node {
+    struct D_80077B14_Node* prev; /* 0x00 */
+    struct D_80077B14_Node* next; /* 0x04 */
+    u16 index;                    /* 0x08 */
+    u8 unkA;                      /* 0x0A */
+    u8 unkB;                      /* 0x0B */
+    u8 padC[0x6];                 /* 0x0C */
+    s16 unk12;                    /* 0x12 */
+    u8 pad14[0x34];               /* 0x14 */
+    D_800278E0_Sprite* sprite;    /* 0x48 */
+    u8 pad4C[0x8];                /* 0x4C */
+} D_80077B14_Node;
+
 #endif
