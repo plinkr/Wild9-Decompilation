@@ -114,6 +114,22 @@ FUNCTION_CCFLAGS := \
 	-G$(SMALL_DATA_LIMIT) \
 	-B$(GCC_DIR)/
 
+# Per-function compiler flags, declared inside the function's own C file with
+# a line such as:
+#
+#   // CFLAGS: -fno-delayed-branch
+#
+# Some parts of the original were compiled with different flags; keeping the
+# directive next to the code documents that and cannot go stale when a file is
+# renamed or removed. Only flags in FUNCTION_CFLAGS_ALLOWED are accepted.
+# They apply to the standalone build (make match/build/verify), which produces
+# the patched executable; src/main.c (make c) is a single translation unit and
+# ignores them.
+FUNCTION_CFLAGS_ALLOWED := \
+	-fno-delayed-branch
+
+function_cflags = $(shell sed -n 's|^//[[:space:]]*CFLAGS:[[:space:]]*||p' "$(FUNCTION_SRC_DIR)/$(1).c" 2>/dev/null)
+
 CPPFLAGS := \
 	-P \
 	-Iinclude
@@ -447,7 +463,12 @@ $(FUNCTION_BUILD)/%.i: src/functions/%.c | $(TOOLCHAIN_STAMPS)
 
 $(FUNCTION_BUILD)/%.gcc.s: $(FUNCTION_BUILD)/%.i | $(TOOLCHAIN_STAMPS)
 	@mkdir -p "$(dir $@)"
-	$(CC) $(FUNCTION_CCFLAGS) -S "$<" -o "$@"
+	@bad="$(filter-out $(FUNCTION_CFLAGS_ALLOWED),$(call function_cflags,$*))"; \
+	test -z "$$bad" || { \
+		echo "$*: unsupported // CFLAGS: $$bad (allowed: $(strip $(FUNCTION_CFLAGS_ALLOWED)))" >&2; \
+		exit 1; \
+	}
+	$(CC) $(FUNCTION_CCFLAGS) $(call function_cflags,$*) -S "$<" -o "$@"
 
 $(FUNCTION_BUILD)/%.s: \
 	$(FUNCTION_BUILD)/%.gcc.s \

@@ -301,6 +301,20 @@ src/functions/func_XXXXXXXX.c
 
 The project does not modify the `tools/maspsx` submodule. `scripts/prepare_function_asm.py` handles small-data preparation before invoking maspsx, and `scripts/aspsx_delay_slot.py` restores the ASPSX expansion of bare macro stores that belong in a jump delay slot (`lui $at,%hi(sym)` hoisted before the jump, `sw $reg,%lo(sym)($at)` in the slot). The delay-slot rewrite only applies where the reference assembly proves the store is a delay-slot instruction.
 
+### Per-function compiler flags
+
+Some parts of the original executable were compiled with different flags. A function that needs one declares it in its own C file, on a line of its own:
+
+```c
+// CFLAGS: -fno-delayed-branch
+```
+
+The `%.gcc.s` rule reads that line and appends the flags to the compiler command. Only flags listed in `FUNCTION_CFLAGS_ALLOWED` in the `Makefile` are accepted; anything else stops the build. The directive applies to the standalone pipeline (`make match`, `make build`, `make verify`), which produces the patched executable. `src/main.c` (`make c`) is one translation unit and ignores it.
+
+Known case: `-fno-delayed-branch` leaves the `jr $ra` delay slot as an explicit `nop`, which GCC 2.8.1 at `-O2` would otherwise fill. Most functions in `0x80057xxx`-`0x80067xxx` need it.
+
+Use the directive only when the C is already correct and the flag is the sole remaining difference, verified by matching with and without it.
+
 ## Development Workflow
 
 ### 1. Decompiling a function

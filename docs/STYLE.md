@@ -157,6 +157,8 @@ We use comments for:
 
 Each decompiled function goes in `src/functions/func_XXXXXXXX.c`. `src/main.c` includes matched function files in original address order. Unmatched functions remain as `INCLUDE_ASM` entries at the same position.
 
+If a function was compiled with different flags in the original, declare them in its file with `// CFLAGS: <flags>` right after the SPDX line (see "Per-function compiler flags" in `README.md`). Do not work around a missing flag with inline assembly or other tricks in the C.
+
 ## Matching
 
 Matching is byte-oriented.

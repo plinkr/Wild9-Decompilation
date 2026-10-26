@@ -134,4 +134,19 @@ typedef struct D_80077B14_Node {
     u8 pad4C[0x8];                /* 0x4C */
 } D_80077B14_Node;
 
+// Callback table at D_800752B8, reached through the pointer D_800752D8 by the
+// wrappers at 0x800578F4-0x80057A44. Entry 0 is the RCS id string
+// "$Id: intr.c,v 1.76 ...", so this looks like the Sony library's interrupt
+// callback table; the fields are left unnamed until that is confirmed.
+typedef struct {
+    const char* rcsid;          /* 0x00 */
+    void* (*unk4)(s32, void*);  /* 0x04 */
+    void* (*unk8)(s32, void*);  /* 0x08 */
+    void* (*unkC)(void);        /* 0x0C */
+    void* (*unk10)(void);       /* 0x10 */
+    void* (*unk14)(s32, void*); /* 0x14 */
+    void* (*unk18)(void);       /* 0x18 */
+    void* unk1C;                /* 0x1C */
+} D_800752B8_Table;
+
 #endif
