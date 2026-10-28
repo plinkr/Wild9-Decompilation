@@ -327,7 +327,7 @@ INCLUDE_ASM("asm/nonmatchings/main", func_8002EC74);
 INCLUDE_ASM("asm/nonmatchings/main", func_8002EF38);
 INCLUDE_ASM("asm/nonmatchings/main", func_8002F234);
 INCLUDE_ASM("asm/nonmatchings/main", func_8002F384);
-INCLUDE_ASM("asm/nonmatchings/main", func_8002F590);
+#include "functions/func_8002F590.c"
 INCLUDE_ASM("asm/nonmatchings/main", func_8002F5C4);
 INCLUDE_ASM("asm/nonmatchings/main", func_8002F624);
 INCLUDE_ASM("asm/nonmatchings/main", func_8002F7F8);
@@ -343,8 +343,8 @@ INCLUDE_ASM("asm/nonmatchings/main", func_8002FFA0);
 INCLUDE_ASM("asm/nonmatchings/main", func_8002FFD4);
 INCLUDE_ASM("asm/nonmatchings/main", func_8003007C);
 INCLUDE_ASM("asm/nonmatchings/main", func_80030118);
-INCLUDE_ASM("asm/nonmatchings/main", func_80030160);
-INCLUDE_ASM("asm/nonmatchings/main", func_800301FC);
+#include "functions/func_80030160.c"
+#include "functions/func_800301FC.c"
 INCLUDE_ASM("asm/nonmatchings/main", func_8003023C);
 INCLUDE_ASM("asm/nonmatchings/main", func_80030278);
 INCLUDE_ASM("asm/nonmatchings/main", func_8003045C);
@@ -372,8 +372,8 @@ INCLUDE_ASM("asm/nonmatchings/main", func_80032AC8);
 INCLUDE_ASM("asm/nonmatchings/main", func_80032AF4);
 #include "functions/func_80032C30.c"
 INCLUDE_ASM("asm/nonmatchings/main", func_80032C38);
-INCLUDE_ASM("asm/nonmatchings/main", func_80032DB8);
-INCLUDE_ASM("asm/nonmatchings/main", func_80032DEC);
+#include "functions/func_80032DB8.c"
+#include "functions/func_80032DEC.c"
 INCLUDE_ASM("asm/nonmatchings/main", func_80032E20);
 INCLUDE_ASM("asm/nonmatchings/main", func_80033004);
 INCLUDE_ASM("asm/nonmatchings/main", func_800331D4);
@@ -383,7 +383,7 @@ INCLUDE_ASM("asm/nonmatchings/main", func_80033534);
 INCLUDE_ASM("asm/nonmatchings/main", func_800335B0);
 INCLUDE_ASM("asm/nonmatchings/main", func_800335F0);
 INCLUDE_ASM("asm/nonmatchings/main", func_80033710);
-INCLUDE_ASM("asm/nonmatchings/main", func_80033814);
+#include "functions/func_80033814.c"
 INCLUDE_ASM("asm/nonmatchings/main", func_8003384C);
 INCLUDE_ASM("asm/nonmatchings/main", func_80033898);
 INCLUDE_ASM("asm/nonmatchings/main", func_800338D0);

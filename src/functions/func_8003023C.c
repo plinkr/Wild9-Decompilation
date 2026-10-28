@@ -4,6 +4,6 @@
 
 void func_8003023C(void* arg0) {
     if (M2C_FIELD(arg0, u16*, 0x12) == 1) {
-        func_800306DC(M2C_FIELD(arg0, s32*, 0x50), 0, arg0 + 0x14, 0);
+        func_800306DC(M2C_FIELD(arg0, void**, 0x50), 0, arg0 + 0x14, 0);
     }
 }
