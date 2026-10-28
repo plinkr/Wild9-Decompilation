@@ -2,4 +2,4 @@
 
 #include "functions.h"
 
-void func_8004EAF0(void) { func_8005F724(); }
+void func_8004EAF0(u16* x, u16* y) { func_8005F724(x, y); }
