@@ -37,6 +37,7 @@ extern u16 D_80074252;
 extern D_800752B8_Table* D_800752D8;
 extern u16* D_800752E0;
 extern s32 D_800752F8[];
+extern u8 D_80075359[];
 extern s32 D_80075418;
 extern void* D_80075470;
 extern void (*D_80075474)(char*, ...);

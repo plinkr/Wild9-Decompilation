@@ -234,6 +234,8 @@ void func_800580F4(s32* dst, s32 count);
 void func_8005839C(s32* dst, s32 count);
 u8* func_800583C4(u8* arg0, u8* arg1, s32 arg2);
 char* func_80058554(char* dst, char* src);
+s8 func_80058CC4(s8 c);
+s8 func_80058CF8(s8 c);
 s32 func_80058FE4(u8*, u8*, ...);
 s32 func_80059C64(s32 arg0);
 void func_80059C94(s32);

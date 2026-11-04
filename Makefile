@@ -126,7 +126,8 @@ FUNCTION_CCFLAGS := \
 # the patched executable; src/main.c (make c) is a single translation unit and
 # ignores them.
 FUNCTION_CFLAGS_ALLOWED := \
-	-fno-delayed-branch
+	-fno-delayed-branch \
+	-mno-split-addresses
 
 function_cflags = $(shell sed -n 's|^//[[:space:]]*CFLAGS:[[:space:]]*||p' "$(FUNCTION_SRC_DIR)/$(1).c" 2>/dev/null)
 

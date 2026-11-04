@@ -17,7 +17,7 @@ The codebase is structured around progressive decompilation. Matched functions a
 
 ## Project status
 
-This is a work-in-progress decompilation project for the original Wild 9 PlayStation 1 executable. Its purpose is to reconstruct the game's source code and produce a byte-for-byte matching rebuild of the original binary.
+Work in progress. See the [decomp.dev progress report](https://decomp.dev/plinkr/Wild9-Decompilation) for current coverage.
 
 This repository is not a playable version of Wild 9. It contains the decompilation sources, build scripts, tools, and generated code required to reproduce the original executable from a legally obtained copy of the game. The original game executable and other copyrighted game assets are not included in this repository.
 
@@ -196,15 +196,12 @@ Disassemble the original binary and generate per-function assembly:
 make split
 ```
 
-Why this step exists:
-Splat reads `iso/us/SLUS_004.25` and disassembles the main code segment into a single large file, `asm/800.s`. Splat by itself does not split `asm/800.s` into individual function files.
-Previously, that per-function splitting had to be done by hand locally, which meant that cloning the repository and running `make split` left `asm/nonmatchings/main/` empty, breaking the build for new contributors.
+Splat disassembles the main code segment into a single file, `asm/800.s`, but does not split it into functions. `make split` runs both stages:
 
-Now, `make split` handles the full pipeline:
-1. Splat runs to disassemble the binary into `asm/800.s` and data files.
-2. `scripts/split_800_functions.py` runs automatically to parse `asm/800.s` and write each function to `asm/nonmatchings/main/func_XXXXXXXX.s`.
+1. Splat disassembles `iso/us/SLUS_004.25` into `asm/800.s` and data files.
+2. `scripts/split_800_functions.py` writes each function from `asm/800.s` to `asm/nonmatchings/main/func_XXXXXXXX.s`.
 
-Running `make` (or `make all`) on a clean checkout will detect missing stamps and automatically bootstrap Splat and the function split before building.
+On a clean checkout, `make` (or `make all`) runs both stages automatically before building.
 
 ### Re-splitting functions without re-running Splat
 
@@ -234,8 +231,7 @@ Or run the script directly using the virtual environment:
 .venv/bin/python scripts/generate_include_asm.py asm/800.s src/main.c
 ```
 
-Why this is opt-in and NOT automatic:
-`src/main.c` is the primary translation unit tracked in git. As functions are decompiled and matched, their `INCLUDE_ASM` calls are replaced with `#include "functions/func_XXXXXXXX.c"`. If `make split` or `make build` regenerated `src/main.c` automatically, it would wipe out all promoted C functions. Only run `make generate-includes` if you are bootstrapping from scratch or intentionally resetting the translation unit.
+This is opt-in because `src/main.c` is the primary translation unit tracked in git. As functions are decompiled and matched, their `INCLUDE_ASM` calls are replaced with `#include "functions/func_XXXXXXXX.c"`. If `make split` or `make build` regenerated `src/main.c` automatically, it would wipe out all promoted C functions. Only run `make generate-includes` if you are bootstrapping from scratch or intentionally resetting the translation unit.
 
 ### Building and verifying
 
@@ -313,6 +309,8 @@ The `%.gcc.s` rule reads that line and appends the flags to the compiler command
 
 Known case: `-fno-delayed-branch` leaves the `jr $ra` delay slot as an explicit `nop`, which GCC 2.8.1 at `-O2` would otherwise fill. Most functions in `0x80057xxx`-`0x80067xxx` need it.
 
+Known case: `-mno-split-addresses` makes GCC emit address macros such as `lbu $2,sym($3)` instead of an explicit `lui %hi` / `addiu %lo` pair. The assembler then expands them through `$at` (`lui $at,%hi(sym)` / `addu $at,$at,$3` / `lbu $2,%lo(sym)($at)`). Some Sony library code in the same region was built this way, for example `func_80058CC4` (`toupper`) and `func_80058CF8` (`tolower`). Neighboring functions use the split form, so declare this flag per function and never apply it globally.
+
 Use the directive only when the C is already correct and the flag is the sole remaining difference, verified by matching with and without it.
 
 ## Development Workflow
@@ -374,7 +372,7 @@ Format C source and header files:
 make format
 ```
 
-This applies `.clang-format` rules and verifies that all C and header files start with the project SPDX license identifier:
+This applies the `.clang-format` rules and prepends the project SPDX license identifier to any C or header file that lacks it:
 
 ```c
 // SPDX-License-Identifier: AGPL-3.0-or-later
@@ -426,6 +424,8 @@ symbols/
 scripts/
   binutils-env.sh
       Sets PATH and LD_LIBRARY_PATH for the private binutils 2.42 environment.
+  extract_psx_exe.py
+      Extracts the boot executable from a .cue/.bin disc image.
   split_800_functions.py
       Splits asm/800.s into per-function assembly files in asm/nonmatchings/main/.
   generate_include_asm.py
@@ -451,6 +451,8 @@ scripts/
       Verifies header prototypes match C function signatures.
   sort_declarations.py
       Sorts declarations in header files.
+  generate_objdiff_config.py
+      Generates the objdiff project configuration used for progress reports.
 
 docs/
   STYLE.md
@@ -470,6 +472,8 @@ Generated assembly (`asm/`), per-function assembly (`asm/nonmatchings/main/`), l
 
 ```bash
 make help                           # Show available Makefile targets
+make tools                          # Initialize the Git submodules
+make install                        # Create .venv and install pinned Python dependencies
 make toolchain                      # Install GCC 2.8.1 PSX and binutils 2.42 in-tree
 make check-toolchain                # Report whether the in-tree toolchain is present
 make versions                       # Print Python, splat, and spimdisasm versions
@@ -484,6 +488,8 @@ make verify                         # Compare build/SLUS_004.25 with the origina
 make match FUNCTION=func_XXXXXXXX   # Build and match a single function
 make promote FUNCTION=func_XXXXXXXX # Promote a matched function in src/main.c
 make check-prototypes               # Verify header prototypes against C definitions
+make sort-declarations              # Sort declarations in functions.h and globals.h
+make objdiff-report                 # Write .decomp/report.json (needs objdiff-cli)
 make format                         # Format C/header files with clang-format
 make clean                          # Remove build artifacts and nonmatchings
 make distclean                      # Remove build artifacts and Python virtualenv
