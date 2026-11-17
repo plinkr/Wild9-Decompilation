@@ -295,7 +295,9 @@ src/functions/func_XXXXXXXX.c
     -> scripts/match_function.py (byte comparison against original binary)
 ```
 
-The project does not modify the `tools/maspsx` submodule. `scripts/prepare_function_asm.py` handles small-data preparation before invoking maspsx, and `scripts/aspsx_delay_slot.py` restores the ASPSX expansion of bare macro stores that belong in a jump delay slot (`lui $at,%hi(sym)` hoisted before the jump, `sw $reg,%lo(sym)($at)` in the slot). The delay-slot rewrite only applies where the reference assembly proves the store is a delay-slot instruction.
+`tools/maspsx` points to a fork (`github.com/plinkr/maspsx`) with two additions: the ASPSX `nop` between `mflo`/`mfhi`, a load and a `mult`/`div`, and the `--load-nop-before-label` option. The Sony library was assembled by an ASPSX that puts the load-delay `nop` right after the load, before any label (`lw; nop; $L2: lhu`), while the game's ASPSX puts the labels first (`lw; $L2: nop; lhu`); the ROM has no exception either way. `scripts/prepare_function_asm.py` passes the option for library functions (from `func_800571C4` on, see `scripts/layout.py`). The Makefile does not track maspsx files: after changing them, rebuild the function objects.
+
+`scripts/prepare_function_asm.py` also handles small-data preparation before invoking maspsx, and `scripts/aspsx_delay_slot.py` restores the ASPSX expansion of bare macro stores that belong in a jump delay slot (`lui $at,%hi(sym)` hoisted before the jump, `sw $reg,%lo(sym)($at)` in the slot). The delay-slot rewrite only applies where the reference assembly proves the store is a delay-slot instruction.
 
 ### Per-function compiler flags
 
@@ -312,6 +314,17 @@ Known case: `-fno-delayed-branch` leaves the `jr $ra` delay slot as an explicit 
 Known case: `-mno-split-addresses` makes GCC emit address macros such as `lbu $2,sym($3)` instead of an explicit `lui %hi` / `addiu %lo` pair. The assembler then expands them through `$at` (`lui $at,%hi(sym)` / `addu $at,$at,$3` / `lbu $2,%lo(sym)($at)`). Some Sony library code in the same region was built this way, for example `func_80058CC4` (`toupper`) and `func_80058CF8` (`tolower`). Neighboring functions use the split form, so declare this flag per function and never apply it globally.
 
 Use the directive only when the C is already correct and the flag is the sole remaining difference, verified by matching with and without it.
+
+### Progress categories
+
+`scripts/generate_objdiff_config.py` puts every function in the `main` category and in one of:
+
+- `game`: game code, everything before `func_800571C4`.
+- `sdk`: the Sony library linked after the game (libapi, libetc, libc, libgpu, libgte, libspu, libcd, libpress, ...), from `func_800571C4` on.
+
+Functions listed in `config/handwritten_functions.txt` were hand-written assembly in the original (BIOS call stubs and a few routines with `$at` and trapping arithmetic). They stay as `INCLUDE_ASM` permanently, are also tagged `handwritten`, and count as matched and complete, because the original assembly is their source. Add a function there only when the assembly proves it cannot come from the compiler, and give the reason on its line.
+
+`make objdiff-report` prints the totals for each category.
 
 ## Development Workflow
 
@@ -407,6 +420,8 @@ include/
   gte_macros.inc
       PlayStation Geometry Transformation Engine (GTE) assembly macros.
 
+config/handwritten_functions.txt
+      Functions that were hand-written assembly in the original; kept as INCLUDE_ASM.
 config/slus_004.25/
   splat.yaml
       Splat disassembly and section split configuration.
@@ -436,6 +451,8 @@ scripts/
       Links a standalone function object at its original address.
   prepare_function_asm.py
       Prepares standalone GCC assembly output before passing to maspsx.
+  layout.py
+      Game/Sony library boundary shared by the build scripts.
   prepare_main_asm.py
       Prepares main translation unit assembly output.
   aspsx_delay_slot.py

@@ -1,0 +1,54 @@
+# Functions that were hand-written assembly in the original executable.
+#
+# They stay as INCLUDE_ASM permanently: no C translation exists for them, so
+# scripts/generate_objdiff_config.py reports them as complete (the original
+# assembly is their source) under the "handwritten" progress category.
+#
+# Format: one function per line, followed by the reason after "#".
+
+# BIOS call stubs from the Sony library (libapi): addiu $t2,0xA0/0xB0/0xC0;
+# jr $t2; addiu $t1,<function number>.
+func_800571C4  # BIOS A0h function 0x70
+func_800571D4  # BIOS B0h function 0x8
+func_800571E4  # BIOS B0h function 0x9
+func_800571F4  # BIOS B0h function 0xB
+func_80057204  # BIOS B0h function 0xC
+func_80057234  # BIOS B0h function 0x32
+func_80057244  # BIOS B0h function 0x33
+func_80057254  # BIOS B0h function 0x34
+func_80057264  # BIOS B0h function 0x35
+func_80057274  # BIOS B0h function 0x36
+func_80057284  # BIOS B0h function 0x41
+func_80057294  # BIOS B0h function 0x43
+func_800576B4  # BIOS B0h function 0x42
+func_800578D4  # BIOS B0h function 0x5B
+func_800578E4  # BIOS C0h function 0xA
+func_80057FBC  # BIOS A0h function 0x72
+func_80057FD4  # BIOS B0h function 0x17
+func_80057FE4  # BIOS B0h function 0x18
+func_80057FF4  # BIOS B0h function 0x19
+func_8005CCA4  # BIOS A0h function 0x49
+func_8005D2A4  # BIOS A0h function 0x44
+func_8005DF74  # BIOS B0h function 0x7
+func_8005F948  # BIOS A0h function 0x39
+func_8005FB08  # BIOS A0h function 0xAB
+func_8005FB18  # BIOS A0h function 0xAC
+func_8005FB28  # BIOS B0h function 0x4F
+func_8005FB38  # BIOS B0h function 0x50
+func_8005FB48  # BIOS B0h function 0x5C
+func_8005FB58  # BIOS B0h function 0x5D
+func_8005FBA8  # BIOS B0h function 0x4E
+func_8005FF88  # BIOS B0h function 0x12
+func_8005FF98  # BIOS B0h function 0x13
+func_8005FFA8  # BIOS B0h function 0x14
+func_8005FFB8  # BIOS B0h function 0x15
+func_8005FFC8  # BIOS C0h function 0x2
+func_8005FFD8  # BIOS C0h function 0x3
+func_800600F8  # BIOS B0h function 0x4A
+func_80060108  # BIOS B0h function 0x4B
+
+# Hand-written arithmetic: 64-bit mult plus a shift-right-double through $at
+# and the trapping sub.
+func_80024300  # $at and trapping sub
+# libpress: $t0 base register, $at scratch and a trapping addi.
+func_80067E98  # $at, $t0 and trapping addi

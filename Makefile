@@ -476,6 +476,7 @@ $(FUNCTION_BUILD)/%.s: \
 	$(MAIN_ASM_SRC) \
 	$(SPLAT_STAMP) \
 	scripts/prepare_function_asm.py \
+	scripts/layout.py \
 	| $(TOOLCHAIN_STAMPS)
 	@mkdir -p "$(dir $@)"
 	$(PY) scripts/prepare_function_asm.py \
@@ -729,4 +730,4 @@ objdiff-report: objdiff-config
 	}
 	@mkdir -p "$(dir $(OBJDIFF_REPORT))"
 	objdiff-cli report generate -p . -o "$(OBJDIFF_REPORT)" -f json
-	@$(PY) -c 'import json; p="$(OBJDIFF_REPORT)"; d=json.load(open(p, encoding="utf-8")); m=d["measures"]; print("Objdiff: %.2f%% code, %d/%d functions" % (m.get("matched_code_percent", 0.0), m.get("matched_functions", 0), m.get("total_functions", 0)))'
+	@$(PY) -c 'import json; p="$(OBJDIFF_REPORT)"; d=json.load(open(p, encoding="utf-8")); fmt=lambda m: "%.2f%% code, %d/%d functions" % (m.get("matched_code_percent", 0.0), m.get("matched_functions", 0), m.get("total_functions", 0)); print("Objdiff: " + fmt(d["measures"])); [print("  %-12s %s" % (c["id"] + ":", fmt(c["measures"]))) for c in d.get("categories", []) if c["id"] != "main"]'

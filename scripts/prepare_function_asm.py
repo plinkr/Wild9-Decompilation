@@ -10,6 +10,7 @@ import tempfile
 from pathlib import Path
 
 from aspsx_delay_slot import rewrite as rewrite_delay_slot_stores
+from layout import is_sdk_function
 
 GP_REL_RE = re.compile(r"%gp_rel\(\s*([A-Za-z_][A-Za-z0-9_]*)\s*\)")
 
@@ -198,6 +199,7 @@ def run_maspsx(
     aspsx_version: str,
     small_data_limit: int,
     expand_div: bool = False,
+    load_nop_before_label: bool = False,
 ) -> str:
     command = [
         sys.executable,
@@ -207,6 +209,8 @@ def run_maspsx(
     ]
     if expand_div:
         command.append("--expand-div")
+    if load_nop_before_label:
+        command.append("--load-nop-before-label")
     command.append(str(input_path))
 
     completed = subprocess.run(
@@ -300,6 +304,10 @@ def main() -> int:
             args.aspsx_version,
             args.small_data_limit,
             args.expand_div,
+            # The Sony library was assembled by an ASPSX that puts the
+            # load-delay nop before a label; the game's ASPSX puts it after
+            # (56 game and 8 library cases in the ROM, no exceptions).
+            load_nop_before_label=is_sdk_function(args.function),
         )
 
     final_asm = strip_generated_sbss(
